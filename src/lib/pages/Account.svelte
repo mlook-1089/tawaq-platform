@@ -1,7 +1,20 @@
 <script lang="ts">
+  import { onMount } from 'svelte';
   import { supabase } from '../supabase';
   import { session, profile, roles } from '../stores';
+  import { getPushStatus, subscribeToPush, unsubscribeFromPush, type PushStatus } from '../push';
   import PageHead from '../components/PageHead.svelte';
+
+  let pushStatus = $state<PushStatus>('not-subscribed');
+  let pushBusy = $state(true);
+  let pushMessage = $state('');
+
+  const pushStatusLabels: Record<PushStatus, string> = {
+    unsupported: 'غير مدعوم',
+    denied: 'محظور',
+    subscribed: 'مفعّلة',
+    'not-subscribed': 'غير مفعّلة'
+  };
 
   const roleLabels: Record<string, string> = {
     super_admin: '🛡️ الإدارة',
@@ -23,6 +36,35 @@
     if (!confirm('تسجيل الخروج؟')) return;
     await supabase.auth.signOut();
   }
+
+  async function togglePush() {
+    const userId = $session?.user.id;
+    if (!userId || pushBusy || pushStatus === 'unsupported' || pushStatus === 'denied') return;
+    pushBusy = true;
+    pushMessage = '';
+    try {
+      pushStatus = pushStatus === 'subscribed'
+        ? await unsubscribeFromPush(userId)
+        : await subscribeToPush(userId);
+      pushMessage = pushStatus === 'subscribed' ? 'تم تفعيل الإشعارات على هذا الجهاز.' : 'تم إيقاف الإشعارات على هذا الجهاز.';
+    } catch (error: any) {
+      pushMessage = error?.message || 'تعذّر تحديث إعداد الإشعارات.';
+    } finally {
+      pushBusy = false;
+    }
+  }
+
+  onMount(() => {
+    void (async () => {
+      try {
+        pushStatus = await getPushStatus();
+      } catch {
+        pushStatus = 'not-subscribed';
+      } finally {
+        pushBusy = false;
+      }
+    })();
+  });
 </script>
 
 <PageHead icon="👤" title="حسابي" />
@@ -53,6 +95,37 @@
   </ul>
 </section>
 
+<section class="u-card push-card">
+  <div class="u-row">
+    <div class="push-icon" aria-hidden="true">🔔</div>
+    <div class="u-list-main">
+      <div class="u-list-title">الإشعارات</div>
+      <div class="u-list-sub">تنبيهات التكليفات وطلبات التبديل</div>
+    </div>
+    <span class="u-pill" class:ok={pushStatus === 'subscribed'} class:warn={pushStatus === 'denied'}>
+      {pushStatusLabels[pushStatus]}
+    </span>
+  </div>
+  <button
+    class="u-btn block push-toggle"
+    class:u-btn-primary={pushStatus !== 'subscribed'}
+    class:u-btn-ghost={pushStatus === 'subscribed'}
+    role="switch"
+    aria-checked={pushStatus === 'subscribed'}
+    disabled={pushBusy || pushStatus === 'unsupported' || pushStatus === 'denied'}
+    onclick={togglePush}
+  >
+    {pushBusy ? 'جارٍ التحقق…' : pushStatus === 'subscribed' ? 'إيقاف الإشعارات' : 'تفعيل الإشعارات'}
+  </button>
+  {#if pushStatus === 'denied'}
+    <div class="u-alert warn">اسمح بالإشعارات من إعدادات المتصفح ثم أعد فتح المنصة.</div>
+  {:else if pushStatus === 'unsupported'}
+    <div class="u-alert info">هذا المتصفح لا يدعم الإشعارات الدافعة.</div>
+  {:else if pushMessage}
+    <div class="u-alert" class:ok={pushStatus === 'subscribed'}>{pushMessage}</div>
+  {/if}
+</section>
+
 <button class="u-btn u-btn-danger block logout-btn" onclick={logout}>تسجيل الخروج</button>
 
 <style>
@@ -79,6 +152,18 @@
   }
 
   .info-card { margin-bottom: var(--sp-2); }
+  .push-card { display: flex; flex-direction: column; gap: var(--sp-2); margin-bottom: var(--sp-2); }
+  .push-icon {
+    width: var(--touch);
+    height: var(--touch);
+    display: grid;
+    place-items: center;
+    background: var(--gold-soft);
+    border-radius: var(--r-md);
+    font-size: var(--fs-xl);
+    flex-shrink: 0;
+  }
+  .push-toggle { margin-top: var(--sp-1); }
   .info-list {
     list-style: none;
     padding: 0;
