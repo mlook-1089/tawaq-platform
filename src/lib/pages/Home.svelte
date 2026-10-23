@@ -1,6 +1,6 @@
 <script lang="ts">
   import { onMount } from 'svelte';
-  import { BarChart3, CalendarDays, ChevronLeft, Clock, House, MapPin, UserCheck, Users } from 'lucide-svelte';
+  import { BarChart3, CalendarDays, ChevronLeft, Clock, Contact, House, MapPin, UserCheck, Users } from 'lucide-svelte';
   import { supabase } from '../supabase';
   import { profile, roles, route } from '../stores';
   import { fmtDate, fmtTime, hijriDate, EVENT_TYPES } from '../utils';
@@ -95,6 +95,11 @@
     <button class="quick-action" onclick={() => route.set('attendance')}>
       <span class="quick-icon"><Icon icon={UserCheck} size={19} /></span>
       <span>الحضور</span>
+      <Icon icon={ChevronLeft} size={15} />
+    </button>
+    <button class="quick-action" onclick={() => route.set('members')}>
+      <span class="quick-icon"><Icon icon={Contact} size={19} /></span>
+      <span>دليل الأعضاء</span>
       <Icon icon={ChevronLeft} size={15} />
     </button>
   </div>

@@ -1,5 +1,12 @@
 <script lang="ts">
-  import { CalendarDays, House, UserCheck, Users, CircleUserRound } from 'lucide-svelte';
+  import {
+    CalendarDays,
+    CircleUserRound,
+    Contact,
+    House,
+    UserCheck,
+    Users
+  } from 'lucide-svelte';
   import { route } from '../stores';
   import Icon from './Icon.svelte';
 
@@ -8,6 +15,7 @@
     { k: 'events',     t: 'الفعاليات', icon: CalendarDays },
     { k: 'hosting',    t: 'المعازيب', icon: Users },
     { k: 'attendance', t: 'الحضور',   icon: UserCheck },
+    { k: 'members',    t: 'الأعضاء',  icon: Contact },
     { k: 'account',    t: 'حسابي',    icon: CircleUserRound }
   ];
 </script>
@@ -20,9 +28,24 @@
       onclick={() => route.set(it.k)}
       aria-current={$route === it.k ? 'page' : undefined}
     >
-      <span class="nav-icon"><Icon icon={it.icon} size={22} strokeWidth={1.75} /></span>
+      <span class="nav-icon"><Icon icon={it.icon} size={20} strokeWidth={1.75} /></span>
       <span class="nav-dot" aria-hidden="true"></span>
       <span class="t">{it.t}</span>
     </button>
   {/each}
 </nav>
+
+<style>
+  :global(.u-nav) {
+    overflow-x: auto;
+    scrollbar-width: none;
+    -webkit-overflow-scrolling: touch;
+  }
+  :global(.u-nav::-webkit-scrollbar) {
+    display: none;
+  }
+  :global(.u-nav-item) {
+    min-width: 58px;
+    flex: 1 0 auto;
+  }
+</style>
