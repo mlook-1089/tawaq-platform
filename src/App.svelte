@@ -1,9 +1,11 @@
 <script lang="ts">
   import { onMount } from 'svelte';
+  import { LoaderCircle } from 'lucide-svelte';
   import { supabase } from './lib/supabase';
   import { session, loadProfile } from './lib/stores';
   import Login from './lib/Login.svelte';
   import Shell from './lib/Shell.svelte';
+  import Icon from './lib/components/Icon.svelte';
 
   let loading = $state(true);
 
@@ -22,9 +24,7 @@
 
 {#if loading}
   <div class="app-boot">
-    <span class="u-spinner lg">
-      <svg viewBox="0 0 24 24"><circle cx="12" cy="12" r="10"/></svg>
-    </span>
+    <Icon icon={LoaderCircle} size={32} class="u-spin-icon" />
     <p>جارٍ التحميل…</p>
   </div>
 {:else if $session}

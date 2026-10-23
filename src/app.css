@@ -7,6 +7,17 @@
   flex-direction: column;
 }
 
+*, *::before, *::after { letter-spacing: -0.003em; }
+
+h1, h2 { letter-spacing: -0.015em; }
+
+.num,
+time,
+[data-numeric] {
+  font-family: var(--font-num);
+  font-variant-numeric: tabular-nums;
+}
+
 a { color: var(--brand-ink); text-decoration: none; }
 a:hover { text-decoration: underline; }
 

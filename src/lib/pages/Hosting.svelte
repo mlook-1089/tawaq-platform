@@ -1,5 +1,6 @@
 <script lang="ts">
   import { onMount } from 'svelte';
+  import { ArrowRightLeft, Check, Pencil, Plus, RefreshCw, Trash2, Users } from 'lucide-svelte';
   import { supabase } from '../supabase';
   import { roles, session } from '../stores';
   import { fmtDate } from '../utils';
@@ -7,6 +8,8 @@
   import HostingForm from './HostingForm.svelte';
   import HostingModal from '../components/HostingModal.svelte';
   import { assignmentSelect, swapSelect, canManageHosting, hostingError, type Assignment, type Swap } from './hosting';
+  import Icon from '../components/Icon.svelte';
+  import EmptyIllustrations from '../components/EmptyIllustrations.svelte';
 
   let assignments = $state<Assignment[]>([]);
   let swaps = $state<Swap[]>([]);
@@ -145,16 +148,17 @@
   function saved() { form = null; success = 'تم الحفظ بنجاح.'; void load(); }
 </script>
 
-<PageHead icon="🫖" title="جدول المعازيب" />
+<PageHead icon={Users} title="جدول المعازيب" subtitle="تكليفات الاستضافة والتأكيد وطلبات التبديل" />
 
 <div class="toolbar">
   <span class="u-pill brand">طلعات الأربعاء القادمة</span>
   <button class="u-btn u-btn-ghost sm" onclick={() => load()} disabled={refreshing || !!busy}>
+    <Icon icon={RefreshCw} size={15} />
     {refreshing ? 'جارٍ التحديث…' : 'تحديث'}
   </button>
   {#if canManage}
-    <button class="u-btn u-btn-gold sm add-btn" disabled={!!busy} onclick={() => form = { mode: 'assignment', assignment: null }}>
-      + ربط معازيب بطلعة
+    <button class="u-btn u-btn-primary sm add-btn" disabled={!!busy} onclick={() => form = { mode: 'assignment', assignment: null }}>
+      <Icon icon={Plus} size={15} /> ربط معازيب بطلعة
     </button>
   {/if}
 </div>
@@ -171,7 +175,8 @@
   </div>
 {:else if !rows.length && !error}
   <div class="u-empty">
-    <div class="ic" aria-hidden="true">🫖</div>
+    <EmptyIllustrations kind="hosting" />
+    <h3>لا توجد تكليفات قادمة</h3>
     <p>لا توجد تكليفات استضافة لطلعات قادمة</p>
   </div>
 {:else}
@@ -187,13 +192,15 @@
           <div class="host-box">
             <span class="host-name">{assignment.host_a_name}</span>
             <span class="u-pill {assignment.host_a_confirmed ? 'ok' : 'warn'}">
-              {assignment.host_a_confirmed ? '✓ مؤكّد' : 'بانتظار التأكيد'}
+              {#if assignment.host_a_confirmed}<Icon icon={Check} size={12} />{/if}
+              {assignment.host_a_confirmed ? 'مؤكّد' : 'بانتظار التأكيد'}
             </span>
           </div>
           <div class="host-box">
             <span class="host-name">{assignment.host_b_name}</span>
             <span class="u-pill {assignment.host_b_confirmed ? 'ok' : 'warn'}">
-              {assignment.host_b_confirmed ? '✓ مؤكّد' : 'بانتظار التأكيد'}
+              {#if assignment.host_b_confirmed}<Icon icon={Check} size={12} />{/if}
+              {assignment.host_b_confirmed ? 'مؤكّد' : 'بانتظار التأكيد'}
             </span>
           </div>
         </div>
@@ -218,20 +225,21 @@
           <div class="actions">
             {#if isHost && !confirmed}
               <button class="u-btn u-btn-primary" disabled={!!busy} onclick={() => confirmHosting(assignment)}>
+                <Icon icon={Check} size={15} />
                 {busy === `confirm:${assignment.id}` ? 'جارٍ التأكيد…' : 'أكّد مشاركتك'}
               </button>
             {/if}
             {#if isHost && !pending.has(assignment.id)}
               <button class="u-btn u-btn-ghost sm" disabled={!!busy || !!error} onclick={() => form = { mode: 'swap', assignment }}>
-                طلب تبديل
+                <Icon icon={ArrowRightLeft} size={15} /> طلب تبديل
               </button>
             {/if}
             {#if canManage}
               <button class="u-btn u-btn-ghost sm" disabled={!!busy} onclick={() => form = { mode: 'assignment', assignment }}>
-                تعديل
+                <Icon icon={Pencil} size={15} /> تعديل
               </button>
               <button class="u-btn u-btn-ghost sm danger" disabled={!!busy} onclick={() => { error = ''; deleting = assignment; }}>
-                حذف
+                <Icon icon={Trash2} size={15} /> حذف
               </button>
             {/if}
           </div>
@@ -246,7 +254,11 @@
 {#if loading}
   <div class="u-skel u-skel-card"></div>
 {:else if !swaps.length && !error}
-  <div class="u-empty"><p>لا توجد طلبات تبديل متاحة لعرضها</p></div>
+  <div class="u-empty">
+    <EmptyIllustrations kind="generic" />
+    <h3>لا توجد طلبات تبديل</h3>
+    <p>ستظهر الطلبات الجديدة هنا عند إرسالها.</p>
+  </div>
 {:else}
   <div class="u-stack">
     {#each swaps as swap (swap.id)}
@@ -321,7 +333,6 @@
   .add-btn { margin-inline-start: auto; }
 
   .host-card {
-    border-inline-start: 4px solid var(--brand);
     position: relative;
   }
   .host-title {
@@ -329,6 +340,7 @@
     color: var(--ink);
     margin: 0 0 var(--sp-2);
   }
+  .host-card .u-day-head { margin: 0 0 var(--sp-1); }
 
   .hosts-grid {
     display: grid;
@@ -343,7 +355,7 @@
     justify-content: space-between;
     align-items: center;
     gap: var(--sp-1);
-    background: var(--brand-softer);
+    background: var(--muted-bg);
     padding: var(--sp-1) var(--sp-2);
     border-radius: var(--r-sm);
     font-size: var(--fs-sm);
@@ -392,7 +404,7 @@
     margin: var(--sp-4) 0 var(--sp-2);
   }
 
-  .swap-card { border-inline-start: 3px solid var(--gold); }
+  .swap-card { border-inline-start: calc(var(--sp-05) - 1px) solid var(--brand); }
   .swap-meta {
     display: flex;
     gap: var(--sp-1);

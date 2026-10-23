@@ -1,5 +1,6 @@
 <script lang="ts">
   import { onMount } from 'svelte';
+  import { AlertCircle, CalendarDays, CheckCircle2, Clock, MapPin, QrCode, ScanQrCode, Settings2, UserCheck } from 'lucide-svelte';
   import { supabase } from '../supabase';
   import { session, roles, isAdmin } from '../stores';
   import { fmtDate, fmtTime, EVENT_TYPES } from '../utils';
@@ -7,6 +8,8 @@
   import AttendanceManage from './AttendanceManage.svelte';
   import AttendanceQR from './AttendanceQR.svelte';
   import AttendanceScan from './AttendanceScan.svelte';
+  import Icon from '../components/Icon.svelte';
+  import EmptyIllustrations from '../components/EmptyIllustrations.svelte';
 
   let events = $state<any[]>([]);
   let myAttendance = $state<Record<string, any>>({});
@@ -91,7 +94,7 @@
         if (err) {
           msg = { eventId: e.id, text: 'فشل الحفظ: ' + err.message, ok: false };
         } else {
-          msg = { eventId: e.id, text: `✅ تم تسجيل حضورك (على بعد ${Math.round(dist)}م من المركز)`, ok: true };
+          msg = { eventId: e.id, text: `تم تسجيل حضورك (على بعد ${Math.round(dist)}م من المركز)`, ok: true };
           await load();
         }
         busyEvent = null;
@@ -124,7 +127,7 @@
   }
 </script>
 
-<PageHead icon="✓" title="التحضير الذكي" />
+<PageHead icon={UserCheck} title="التحضير الذكي" subtitle="سجّل وصولك بأمان عبر الموقع أو رمز الحضور" />
 
 {#if loading}
   <div class="u-stack">
@@ -133,17 +136,18 @@
   </div>
 {:else if events.length === 0}
   <div class="u-empty">
-    <div class="ic">📅</div>
+    <EmptyIllustrations kind="attendance" />
     <h3>لا توجد فعاليات هذا الأسبوع</h3>
     <p>سيظهر التحضير هنا عند اقتراب موعد أي فعالية.</p>
   </div>
 {:else}
-  <div class="u-alert">
-    💡 اضغط <b>"تحضير بالموقع"</b> عند الوصول للفعالية — النظام يتحقق من موقعك ويُسجّلك تلقائياً.
+  <div class="u-alert intro-alert">
+    <Icon icon={AlertCircle} size={16} />
+    <span>اضغط <b>"تحضير بالموقع"</b> عند الوصول للفعالية؛ سيتحقق النظام من نطاق الموقع.</span>
   </div>
 
   <button class="u-btn u-btn-secondary block scan-btn" onclick={() => showScanner = true}>
-    📷 مسح QR
+    <Icon icon={ScanQrCode} size={17} /> مسح رمز الحضور
   </button>
 
   <div class="u-stack">
@@ -153,17 +157,16 @@
       {@const hasGeo = !!(e.geofence_lat && e.geofence_lng)}
       <article class="u-card att-card" class:current>
         <header class="att-head">
-          <div class="date-badge" style="background: {e.color_tag || EVENT_TYPES[e.type]?.color}">
+          <time class="date-badge" datetime={e.start_datetime}>
             <span class="d">{fmtDate(e.start_datetime).split(' ')[0]}</span>
-            <span class="t">{fmtTime(e.start_datetime)}</span>
-          </div>
+            <span class="n">{new Date(e.start_datetime).getDate()}</span>
+          </time>
           <div class="info">
-            <div class="title">{e.title}</div>
+            <div class="title-line"><span class={`type-dot type-${e.type}`}></span><div class="title">{e.title}</div></div>
             <div class="meta">
-              <span class="u-pill" style="background: {e.color_tag || EVENT_TYPES[e.type]?.color}; color: var(--on-brand)">
-                {EVENT_TYPES[e.type]?.label || e.type}
-              </span>
-              {#if e.location_name}<span class="u-muted">📍 {e.location_name}</span>{/if}
+              <span><Icon icon={Clock} size={14} />{fmtTime(e.start_datetime)}</span>
+              {#if e.location_name}<span><Icon icon={MapPin} size={14} />{e.location_name}</span>{/if}
+              <span>{EVENT_TYPES[e.type]?.label || e.type}</span>
             </div>
           </div>
           {#if current}
@@ -185,27 +188,34 @@
           </div>
         {:else if current && hasGeo}
           <button class="u-btn u-btn-primary lg block check-btn" disabled={busyEvent === e.id} onclick={() => selfCheckIn(e)}>
-            {busyEvent === e.id ? 'جارٍ تحديد موقعك…' : '📍 تحضير بالموقع'}
+            <Icon icon={MapPin} size={17} />
+            {busyEvent === e.id ? 'جارٍ تحديد موقعك…' : 'تحضير بالموقع'}
           </button>
         {:else if current && !hasGeo}
-          <div class="u-alert warn">⚠️ لم يُحدِّد المسؤول موقعاً للتحضير الذاتي بعد.</div>
+          <div class="u-alert warn inline-alert"><Icon icon={AlertCircle} size={15} /> لم يُحدِّد المسؤول موقعاً للتحضير الذاتي بعد.</div>
         {:else}
           <div class="status-muted">
-            {hasGeo ? '📍 موقع التحضير جاهز — سيُفعَّل عند بدء الفعالية' : '⏳ لم يحن وقت التحضير'}
+            {#if hasGeo}
+              <Icon icon={MapPin} size={15} /> موقع التحضير جاهز؛ سيُفعَّل عند بدء الفعالية
+            {:else}
+              <Icon icon={Clock} size={15} /> لم يحن وقت التحضير
+            {/if}
           </div>
         {/if}
 
         {#if msg && msg.eventId === e.id}
-          <div class="u-alert {msg.ok ? 'ok' : 'err'}">{msg.text}</div>
+          <div class="u-alert {msg.ok ? 'ok' : 'err'} inline-alert">
+            <Icon icon={msg.ok ? CheckCircle2 : AlertCircle} size={15} />{msg.text}
+          </div>
         {/if}
 
         {#if $isAdmin}
           <div class="u-grid u-grid-2 admin-actions">
             <button class="u-btn u-btn-secondary sm" onclick={() => qrEvent = e}>
-              📱 عرض QR
+              <Icon icon={QrCode} size={15} /> عرض الرمز
             </button>
             <button class="u-btn u-btn-ghost sm" onclick={() => manageEventId = e.id}>
-              إدارة الحضور
+              <Icon icon={Settings2} size={15} /> إدارة الحضور
             </button>
           </div>
         {/if}
@@ -234,49 +244,58 @@
   .scan-btn { margin: var(--sp-2) 0; }
   .att-card.current {
     border-color: var(--ok);
-    box-shadow: 0 0 0 2px var(--ok-soft), var(--shadow);
+    box-shadow: 0 0 0 calc(var(--sp-05) / 2) var(--ok-soft);
   }
+
+  .intro-alert, .inline-alert { display: flex; align-items: center; gap: var(--sp-1); }
 
   .att-head {
     display: flex;
-    gap: var(--sp-1);
+    gap: var(--sp-3);
     align-items: center;
     margin-bottom: var(--sp-2);
   }
 
   .date-badge {
-    color: var(--on-brand);
-    border-radius: var(--r-sm);
-    padding: var(--sp-1) var(--sp-2);
+    color: var(--ink);
+    padding-inline-end: var(--sp-3);
+    border-inline-end: 1px solid var(--line);
     text-align: center;
-    min-width: 72px;
+    min-width: var(--sp-8);
     flex-shrink: 0;
   }
   .date-badge .d {
     display: block;
     font: var(--fw-semi) var(--fs-tiny) var(--font-sans);
-    opacity: 0.9;
+    color: var(--ink3);
   }
-  .date-badge .t {
+  .date-badge .n {
     display: block;
-    font: var(--fw-bold) var(--fs-md) var(--font-num);
+    font: var(--fw-bold) var(--fs-xl) var(--font-num);
     font-variant-numeric: tabular-nums;
-    margin-top: 2px;
+    margin-top: var(--sp-05);
   }
 
   .info { flex: 1; min-width: 0; }
-  .title { font: var(--fw-bold) var(--fs-base) var(--font-sans); color: var(--ink); margin-bottom: 4px; }
-  .meta { display: flex; gap: var(--sp-1); align-items: center; flex-wrap: wrap; font-size: var(--fs-tiny); }
+  .title-line { display: flex; align-items: center; gap: var(--sp-1); }
+  .title { font: var(--fw-semi) var(--fs-base) var(--font-sans); color: var(--ink); }
+  .type-dot { width: calc(var(--sp-1) - 2px); height: calc(var(--sp-1) - 2px); border-radius: var(--r-pill); background: var(--brand); }
+  .type-sport { background: var(--gold); }
+  .type-cultural { background: var(--brand-3); }
+  .type-competition { background: var(--warn); }
+  .type-hospitality { background: var(--info); }
+  .meta { display: flex; gap: var(--sp-2); align-items: center; flex-wrap: wrap; font-size: var(--fs-tiny); color: var(--ink3); margin-top: var(--sp-05); }
+  .meta span { display: inline-flex; align-items: center; gap: var(--sp-05); }
 
   .live {
     background: var(--ok);
-    color: #fff;
-    gap: 5px;
+    color: var(--on-brand);
+    gap: var(--sp-05);
     flex-shrink: 0;
   }
   .dot {
-    width: 7px; height: 7px; border-radius: 50%;
-    background: #fff;
+    width: calc(var(--sp-1) - 1px); height: calc(var(--sp-1) - 1px); border-radius: var(--r-pill);
+    background: var(--on-brand);
     animation: live-pulse 1.5s ease-in-out infinite;
   }
   @keyframes live-pulse { 0%,100% { opacity: 1; } 50% { opacity: 0.4; } }
@@ -299,6 +318,10 @@
     border-radius: var(--r-sm);
     font-size: var(--fs-xs);
     text-align: center;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    gap: var(--sp-1);
   }
 
   .admin-actions { margin-top: var(--sp-1); }

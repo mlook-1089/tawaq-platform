@@ -1,6 +1,9 @@
 <script lang="ts">
   import { onMount } from 'svelte';
+  import { BarChart3, CalendarCheck2, CalendarDays, Download, Percent, Printer, Trophy, UserCheck, Users } from 'lucide-svelte';
   import PageHead from '../components/PageHead.svelte';
+  import Icon from '../components/Icon.svelte';
+  import EmptyIllustrations from '../components/EmptyIllustrations.svelte';
   import { supabase } from '../supabase';
   import { roles, route } from '../stores';
 
@@ -150,12 +153,12 @@
     ).length;
 
     return [
-      { label: 'عدد الفعاليات', value: events.length.toLocaleString('ar-SA') },
-      { label: 'عدد الحضور الكلي', value: attended.toLocaleString('ar-SA') },
-      { label: 'نسبة الحضور %', value: `${denominator ? Math.round(attended / denominator * 100) : 0}٪` },
-      { label: 'عدد المضيفين الفعّالين', value: activeHosts.toLocaleString('ar-SA') },
-      { label: 'طلعات أربعاء منفَّذة', value: completedWeekly.toLocaleString('ar-SA') },
-      { label: 'متوسط الحضور/فعالية', value: (events.length ? attended / events.length : 0).toLocaleString('ar-SA', { maximumFractionDigits: 1 }) }
+      { label: 'عدد الفعاليات', value: events.length.toLocaleString('ar-SA'), icon: CalendarDays },
+      { label: 'عدد الحضور الكلي', value: attended.toLocaleString('ar-SA'), icon: UserCheck },
+      { label: 'نسبة الحضور %', value: `${denominator ? Math.round(attended / denominator * 100) : 0}٪`, icon: Percent },
+      { label: 'عدد المضيفين الفعّالين', value: activeHosts.toLocaleString('ar-SA'), icon: Users },
+      { label: 'طلعات أربعاء منفَّذة', value: completedWeekly.toLocaleString('ar-SA'), icon: CalendarCheck2 },
+      { label: 'متوسط الحضور/فعالية', value: (events.length ? attended / events.length : 0).toLocaleString('ar-SA', { maximumFractionDigits: 1 }), icon: BarChart3 }
     ];
   });
 
@@ -276,7 +279,7 @@
 
 {#if canView}
   <div class="reports-page">
-    <PageHead icon="📊" title="التقارير والإحصائيات" />
+    <PageHead icon={BarChart3} title="التقارير والإحصائيات" subtitle="مؤشرات الأداء والحضور والاستضافة" />
 
     <div class="u-seg block period-selector" aria-label="الفترة الزمنية">
       {#each periodOptions as option (option.key)}
@@ -302,14 +305,15 @@
       <section class="u-grid u-grid-2 stats-grid" aria-label="المؤشرات الرئيسية">
         {#each metrics as metric (metric.label)}
           <div class="u-stat">
+            <span class="stat-icon"><Icon icon={metric.icon} size={17} /></span>
             <span class="lbl">{metric.label}</span>
-            <span class="num">{metric.value}</span>
+            <span class="num" data-numeric>{metric.value}</span>
           </div>
         {/each}
       </section>
 
       <section class="u-card report-card">
-        <div class="u-card-h">أفضل 10 حضوراً</div>
+        <div class="u-card-h"><span><Icon icon={Trophy} size={17} /> أفضل 10 حضوراً</span></div>
         {#if topAttendees.length}
           <ul class="u-list">
             {#each topAttendees as attendee, index (attendee.id)}
@@ -324,12 +328,12 @@
             {/each}
           </ul>
         {:else}
-          <div class="u-empty compact-empty"><p>لا توجد سجلات حضور في هذه الفترة.</p></div>
+          <div class="u-empty compact-empty"><EmptyIllustrations kind="attendance" /><p>لا توجد سجلات حضور في هذه الفترة.</p></div>
         {/if}
       </section>
 
       <section class="u-card report-card">
-        <div class="u-card-h">أفضل 5 مضيفين</div>
+        <div class="u-card-h"><span><Icon icon={Users} size={17} /> أفضل 5 مضيفين</span></div>
         {#if topHosts.length}
           <ul class="u-list">
             {#each topHosts as host, index (host.id)}
@@ -344,12 +348,12 @@
             {/each}
           </ul>
         {:else}
-          <div class="u-empty compact-empty"><p>لا توجد تكليفات استضافة في هذه الفترة.</p></div>
+          <div class="u-empty compact-empty"><EmptyIllustrations kind="hosting" /><p>لا توجد تكليفات استضافة في هذه الفترة.</p></div>
         {/if}
       </section>
 
       <section class="u-card report-card">
-        <div class="u-card-h">توزيع الحضور</div>
+        <div class="u-card-h"><span><Icon icon={Percent} size={17} /> توزيع الحضور</span></div>
         <div class="u-stack">
           {#each breakdown as item (item.status)}
             <div class="progress-row">
@@ -366,7 +370,7 @@
       </section>
 
       <section class="u-card report-card">
-        <div class="u-card-h">اتجاه الفعاليات الأسبوعي</div>
+        <div class="u-card-h"><span><Icon icon={BarChart3} size={17} /> اتجاه الفعاليات الأسبوعي</span></div>
         <div class="chart-wrap">
           <svg viewBox={`0 0 ${chart.width} ${chart.height}`} role="img" aria-label="عدد الفعاليات خلال آخر 12 أسبوعاً">
             <line x1="0" y1={chart.baseline} x2={chart.width} y2={chart.baseline} class="chart-axis" />
@@ -380,8 +384,8 @@
       </section>
 
       <div class="u-grid u-grid-2 export-actions">
-        <button class="u-btn u-btn-primary" onclick={exportCsv}>تصدير CSV</button>
-        <button class="u-btn u-btn-ghost" onclick={() => window.print()}>طباعة</button>
+        <button class="u-btn u-btn-primary" onclick={exportCsv}><Icon icon={Download} size={15} /> تصدير CSV</button>
+        <button class="u-btn u-btn-ghost" onclick={() => window.print()}><Icon icon={Printer} size={15} /> طباعة</button>
       </div>
     {/if}
   </div>
@@ -391,10 +395,21 @@
   .reports-page { display: flex; flex-direction: column; gap: var(--sp-3); }
   .period-selector { overflow-x: auto; }
   .period-selector .seg-btn { padding-inline: var(--sp-1); }
-  .stats-grid .u-stat { min-height: calc(var(--sp-8) + var(--sp-4)); }
+  .stats-grid .u-stat {
+    min-height: calc(var(--sp-8) + var(--sp-4));
+    display: grid;
+    grid-template-columns: 1fr auto;
+    align-items: start;
+    gap: var(--sp-05) var(--sp-2);
+  }
+  .stats-grid .lbl { grid-column: 1; }
+  .stats-grid .num { grid-column: 1; }
+  .stat-icon { grid-column: 2; grid-row: 1 / span 2; width: var(--sp-6); height: var(--sp-6); display: grid; place-items: center; background: var(--brand-soft); color: var(--brand); border-radius: var(--r-xs); }
   .report-card { display: flex; flex-direction: column; gap: var(--sp-2); }
   .report-card .u-card-h { margin-bottom: 0; }
+  .report-card .u-card-h span { display: inline-flex; align-items: center; gap: var(--sp-1); }
   .compact-empty { padding: var(--sp-3); }
+  .compact-empty :global(.empty-art) { width: var(--sp-8); height: var(--sp-8); }
   .progress-row { display: flex; flex-direction: column; gap: var(--sp-1); }
   .progress-head { display: flex; align-items: center; justify-content: space-between; gap: var(--sp-2); }
   .chart-wrap { direction: ltr; overflow-x: auto; }

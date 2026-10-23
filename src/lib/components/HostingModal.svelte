@@ -1,5 +1,7 @@
 <script lang="ts">
   import { onMount, type Snippet } from 'svelte';
+  import { X } from 'lucide-svelte';
+  import Icon from './Icon.svelte';
   let { title, busy = false, onclose, children }: {
     title: string; busy?: boolean; onclose: () => void; children: Snippet;
   } = $props();
@@ -25,7 +27,7 @@
     <div class="u-sheet-handle"></div>
     <div class="u-modal-header">
       <span>{title}</span>
-      <button type="button" class="u-modal-close" aria-label="إغلاق" disabled={busy} onclick={close}>✕</button>
+      <button type="button" class="u-modal-close" aria-label="إغلاق" disabled={busy} onclick={close}><Icon icon={X} /></button>
     </div>
     {@render children()}
   </div>

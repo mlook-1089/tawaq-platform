@@ -1,9 +1,11 @@
 <script lang="ts">
   import { onMount } from 'svelte';
+  import { Bell, CircleUserRound, LogOut, ShieldCheck, User } from 'lucide-svelte';
   import { supabase } from '../supabase';
   import { session, profile, roles } from '../stores';
   import { getPushStatus, subscribeToPush, unsubscribeFromPush, type PushStatus } from '../push';
   import PageHead from '../components/PageHead.svelte';
+  import Icon from '../components/Icon.svelte';
 
   let pushStatus = $state<PushStatus>('not-subscribed');
   let pushBusy = $state(true);
@@ -17,14 +19,14 @@
   };
 
   const roleLabels: Record<string, string> = {
-    super_admin: '🛡️ الإدارة',
-    mod_cultural: '📚 لجنة الثقافي والاستضافات',
-    mod_sports: '⚽ لجنة الرياضي',
-    mod_competitions: '🏆 لجنة المسابقات',
-    mod_trips: '🏕️ لجنة الفعاليات',
-    mod_hospitality: '🫖 لجنة الاجتماعية والضيافة',
-    mod_media: '🎨 لجنة التصميم والإعلام',
-    member: '👤 عضو'
+    super_admin: 'الإدارة',
+    mod_cultural: 'لجنة الثقافي والاستضافات',
+    mod_sports: 'لجنة الرياضي',
+    mod_competitions: 'لجنة المسابقات',
+    mod_trips: 'لجنة الفعاليات',
+    mod_hospitality: 'لجنة الاجتماعية والضيافة',
+    mod_media: 'لجنة التصميم والإعلام',
+    member: 'عضو'
   };
 
   function initials(name: string) {
@@ -67,9 +69,9 @@
   });
 </script>
 
-<PageHead icon="👤" title="حسابي" />
+<PageHead icon={CircleUserRound} title="حسابي" subtitle="بيانات العضوية وتفضيلات هذا الجهاز" />
 
-<article class="u-hero profile-hero">
+<article class="profile-card">
   <div class="avatar-wrap">
     <div class="u-avatar circle xl u-avatar-brand">{initials($profile?.full_name || 'ع')}</div>
   </div>
@@ -77,16 +79,16 @@
   <p>{$session?.user?.email}</p>
   <div class="roles-row">
     {#each $roles as r (r)}
-      <span class="u-role-badge {r === 'super_admin' ? 'admin' : 'member'}">{roleLabels[r] || r}</span>
+      <span class="u-pill {r === 'super_admin' ? 'brand' : ''}"><Icon icon={r === 'super_admin' ? ShieldCheck : User} size={12} />{roleLabels[r] || r}</span>
     {/each}
     {#if $roles.length === 0}
-      <span class="u-role-badge member">{roleLabels.member}</span>
+      <span class="u-pill"><Icon icon={User} size={12} />{roleLabels.member}</span>
     {/if}
   </div>
 </article>
 
 <section class="u-card info-card">
-  <div class="u-card-h">📋 المعلومات</div>
+  <div class="u-card-h">المعلومات</div>
   <ul class="info-list">
     <li><span>اسم المستخدم</span><b>{$profile?.username || '—'}</b></li>
     <li><span>الجوال</span><b>{$profile?.phone || '—'}</b></li>
@@ -97,7 +99,7 @@
 
 <section class="u-card push-card">
   <div class="u-row">
-    <div class="push-icon" aria-hidden="true">🔔</div>
+    <div class="push-icon"><Icon icon={Bell} size={19} /></div>
     <div class="u-list-main">
       <div class="u-list-title">الإشعارات</div>
       <div class="u-list-sub">تنبيهات التكليفات وطلبات التبديل</div>
@@ -126,21 +128,21 @@
   {/if}
 </section>
 
-<button class="u-btn u-btn-danger block logout-btn" onclick={logout}>تسجيل الخروج</button>
+<button class="u-btn u-btn-ghost block logout-btn" onclick={logout}><Icon icon={LogOut} size={16} /> تسجيل الخروج</button>
 
 <style>
-  .profile-hero {
+  .profile-card {
     text-align: center;
     padding: var(--sp-5) var(--sp-3);
-    margin-bottom: var(--sp-2);
+    border-bottom: 1px solid var(--line);
   }
+  .profile-card h2 { margin: 0; font: var(--fw-bold) var(--fs-xl) var(--font-sans); color: var(--ink); }
+  .profile-card p { margin: var(--sp-05) 0 0; color: var(--ink3); font-size: var(--fs-sm); }
   .avatar-wrap {
     margin-bottom: var(--sp-2);
     position: relative;
   }
-  .profile-hero :global(.u-avatar) {
-    border: 3px solid rgba(255,255,255,0.2);
-  }
+  .profile-card :global(.u-avatar) { border: 1px solid var(--line); }
 
   .roles-row {
     display: flex;
@@ -158,9 +160,9 @@
     height: var(--touch);
     display: grid;
     place-items: center;
-    background: var(--gold-soft);
-    border-radius: var(--r-md);
-    font-size: var(--fs-xl);
+    background: var(--brand-soft);
+    color: var(--brand);
+    border-radius: var(--r-xs);
     flex-shrink: 0;
   }
   .push-toggle { margin-top: var(--sp-1); }
@@ -173,13 +175,13 @@
     display: flex;
     justify-content: space-between;
     padding: var(--sp-1) 0;
-    border-bottom: 1px dashed var(--line);
+    border-bottom: 1px solid var(--line);
     font-size: var(--fs-sm);
   }
   .info-list li:last-child { border-bottom: none; }
   .info-list li span { color: var(--ink3); }
   .info-list li b { color: var(--ink); font-weight: var(--fw-semi); }
 
-  .logout-btn { margin-top: var(--sp-2); }
+  .logout-btn { margin-top: var(--sp-2); color: var(--bad); }
   .block { width: 100%; }
 </style>

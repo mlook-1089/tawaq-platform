@@ -1,6 +1,8 @@
 <script lang="ts">
   import { onMount } from 'svelte';
+  import { ScanQrCode, X } from 'lucide-svelte';
   import { supabase } from '../supabase';
+  import Icon from '../components/Icon.svelte';
 
   let {
     onclose,
@@ -70,7 +72,7 @@
         return;
       }
 
-      message = data.status === 'late' ? '✅ تم تسجيل حضورك كمتأخر.' : '✅ تم تسجيل حضورك بنجاح.';
+      message = data.status === 'late' ? 'تم تسجيل حضورك كمتأخر.' : 'تم تسجيل حضورك بنجاح.';
       messageOk = true;
       await stopScanner();
       onsuccess();
@@ -120,33 +122,40 @@
   <section class="u-modal-box">
     <div class="u-sheet-handle" aria-hidden="true"></div>
     <header class="u-modal-header">
-      <h2 id="attendance-scan-title">مسح رمز الحضور</h2>
-      <button class="u-modal-close" aria-label="إغلاق" onclick={close}>✕</button>
+      <h2 id="attendance-scan-title"><Icon icon={ScanQrCode} size={18} /> مسح رمز الحضور</h2>
+      <button class="u-modal-close" aria-label="إغلاق" onclick={close}><Icon icon={X} /></button>
     </header>
 
     <div class="u-modal-body u-stack">
       <div class="reader-shell" class:ready={cameraReady}>
         <div id={readerId}></div>
+        <i class="corner c1"></i><i class="corner c2"></i><i class="corner c3"></i><i class="corner c4"></i>
       </div>
       <div class="u-alert" class:ok={messageOk} class:err={!messageOk && !cameraReady}>{message}</div>
     </div>
 
     <footer class="u-modal-footer">
-      <button class="u-btn u-btn-ghost block" onclick={close}>إغلاق</button>
+      <button class="u-btn u-btn-ghost" onclick={close}>إغلاق</button>
     </footer>
   </section>
 </div>
 
 <style>
   .u-modal-scrim { border: 0; padding: 0; }
-  .u-modal-header h2 { margin: 0; font: var(--fw-bold) var(--fs-xl) var(--font-sans); }
+  .u-modal-header h2 { margin: 0; font: var(--fw-bold) var(--fs-lg) var(--font-sans); display: inline-flex; align-items: center; gap: var(--sp-1); }
   .reader-shell {
     min-height: calc(var(--sp-8) * 4);
+    position: relative;
     overflow: hidden;
     border: var(--border-w) solid var(--line);
-    border-radius: var(--r-xl);
+    border-radius: calc(var(--sp-1) + var(--sp-05));
     background: var(--muted-bg);
   }
   .reader-shell.ready { border-color: var(--brand); }
   .reader-shell :global(video) { border-radius: var(--r-lg); }
+  .corner { position: absolute; width: var(--sp-5); height: var(--sp-5); border-color: var(--on-brand); border-style: solid; pointer-events: none; }
+  .c1 { top: var(--sp-3); right: var(--sp-3); border-width: var(--border-w) var(--border-w) 0 0; }
+  .c2 { top: var(--sp-3); left: var(--sp-3); border-width: var(--border-w) 0 0 var(--border-w); }
+  .c3 { bottom: var(--sp-3); right: var(--sp-3); border-width: 0 var(--border-w) var(--border-w) 0; }
+  .c4 { bottom: var(--sp-3); left: var(--sp-3); border-width: 0 0 var(--border-w) var(--border-w); }
 </style>

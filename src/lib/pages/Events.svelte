@@ -1,9 +1,12 @@
 <script lang="ts">
   import { onMount } from 'svelte';
+  import { CalendarDays, Clock, MapPin, Pencil, Plus, Trash2 } from 'lucide-svelte';
   import { supabase } from '../supabase';
   import { roles } from '../stores';
   import { fmtDate, fmtTime, EVENT_TYPES, myAllowedTypes, canCreateType } from '../utils';
   import PageHead from '../components/PageHead.svelte';
+  import Icon from '../components/Icon.svelte';
+  import EmptyIllustrations from '../components/EmptyIllustrations.svelte';
   import EventForm from './EventForm.svelte';
 
   let events = $state<any[]>([]);
@@ -53,7 +56,7 @@
   }
 </script>
 
-<PageHead icon="📅" title="جدول الفعاليات" />
+<PageHead icon={CalendarDays} title="جدول الفعاليات" subtitle="الفعاليات القادمة مرتبة حسب اليوم" />
 
 <div class="filters">
   <div class="u-chips">
@@ -63,46 +66,52 @@
     {/each}
   </div>
   {#if allowedTypes.length}
-    <button class="u-btn u-btn-gold sm" onclick={openCreate}>+ إضافة</button>
+    <button class="u-btn u-btn-primary sm" onclick={openCreate}><Icon icon={Plus} size={15} /> إضافة</button>
   {/if}
 </div>
 
 {#if loading}
   <div class="u-stack">
-    <div class="u-skel u-skel-card" style="height: 70px"></div>
-    <div class="u-skel u-skel-card" style="height: 70px"></div>
-    <div class="u-skel u-skel-card" style="height: 70px"></div>
+    <div class="u-skel event-skeleton"></div>
+    <div class="u-skel event-skeleton"></div>
+    <div class="u-skel event-skeleton"></div>
   </div>
 {:else if error}
   <div class="u-alert err">{error}</div>
 {:else if filtered.length === 0}
   <div class="u-empty">
-    <div class="ic">📅</div>
+    <EmptyIllustrations kind="calendar" />
     <h3>لا توجد فعاليات في هذا التصنيف</h3>
+    <p>جرّب تصنيفًا آخر أو أضف فعالية جديدة.</p>
   </div>
 {:else}
   {#each groupedByDay as [day, dayEvents] (day)}
     <div class="u-day-head">{fmtDate(day)}</div>
     {#each dayEvents as e (e.id)}
-      <div class="tw-event" style="border-right-color: {e.color_tag || EVENT_TYPES[e.type]?.color}">
-        <div class="time">{fmtTime(e.start_datetime)}</div>
+      <article class="tw-event">
+        <time class="tw-event-date" datetime={e.start_datetime}>
+          <span class="day-name">{fmtDate(e.start_datetime).split(' ')[0]}</span>
+          <span class="day-number">{new Date(e.start_datetime).getDate()}</span>
+        </time>
         <div class="body">
-          <div class="title">{e.title}</div>
+          <div class="title-line">
+            <span class={`type-dot type-${e.type}`} aria-hidden="true"></span>
+            <div class="title">{e.title}</div>
+          </div>
           <div class="meta">
-            <span class="u-pill" style="background: {e.color_tag || EVENT_TYPES[e.type]?.color}; color: var(--on-brand)">
-              {EVENT_TYPES[e.type]?.label || e.type}
-            </span>
-            {#if e.location_name}<span>📍 {e.location_name}</span>{/if}
+            <span class="meta-item"><Icon icon={Clock} size={14} />{fmtTime(e.start_datetime)}</span>
+            {#if e.location_name}<span class="meta-item"><Icon icon={MapPin} size={14} />{e.location_name}</span>{/if}
+            <span>{EVENT_TYPES[e.type]?.label || e.type}</span>
           </div>
           {#if e.description}<div class="desc">{e.description}</div>{/if}
         </div>
         {#if canCreateType($roles, e.type)}
           <div class="actions">
-            <button class="u-btn u-btn-ghost sm icon-only" onclick={() => openEdit(e)} aria-label="تعديل">✎</button>
-            <button class="u-btn u-btn-ghost sm icon-only danger-btn" onclick={() => deleteEvent(e)} aria-label="حذف">🗑</button>
+            <button class="u-btn-icon" onclick={() => openEdit(e)} aria-label="تعديل"><Icon icon={Pencil} size={15} /></button>
+            <button class="u-btn-icon danger-btn" onclick={() => deleteEvent(e)} aria-label="حذف"><Icon icon={Trash2} size={15} /></button>
           </div>
         {/if}
-      </div>
+      </article>
     {/each}
   {/each}
 {/if}
@@ -120,14 +129,19 @@
     flex-wrap: wrap;
   }
   .filters .u-chips { flex: 1; min-width: 0; }
+  .event-skeleton { min-height: calc(var(--sp-8) + var(--sp-4)); border-radius: calc(var(--sp-1) + var(--sp-05)); }
 
   .desc {
     font-size: var(--fs-xs);
     color: var(--ink2);
-    margin-top: 4px;
+    margin-top: var(--sp-05);
     line-height: var(--lh-base);
   }
 
-  .actions { display: flex; gap: 4px; flex-shrink: 0; }
+  .type-sport { background: var(--gold); }
+  .type-cultural { background: var(--brand-3); }
+  .type-competition { background: var(--warn); }
+  .type-hospitality { background: var(--info); }
+  .actions { display: flex; gap: var(--sp-05); flex-shrink: 0; }
   .danger-btn:hover { background: var(--bad-soft); color: var(--bad); border-color: var(--bad-soft); }
 </style>

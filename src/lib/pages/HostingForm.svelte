@@ -1,10 +1,12 @@
 <script lang="ts">
   import { onMount, untrack } from 'svelte';
+  import { RefreshCw, Save, Send } from 'lucide-svelte';
   import { supabase } from '../supabase';
   import { roles, session } from '../stores';
   import { fmtDate } from '../utils';
   import HostingModal from '../components/HostingModal.svelte';
   import { canManageHosting, hostingError, loadMembers, weekStart, type Assignment, type Member, type WeeklyEvent } from './hosting';
+  import Icon from '../components/Icon.svelte';
 
   let { mode, assignment = null, onclose, onsaved }: {
     mode: 'assignment' | 'swap'; assignment?: Assignment | null;
@@ -178,8 +180,9 @@
 
   <div class="u-modal-footer">
     <button type="button" class="u-btn u-btn-ghost" disabled={saving} onclick={onclose}>إلغاء</button>
-    {#if error}<button type="button" class="u-btn u-btn-ghost" disabled={loading || saving} onclick={load}>تحديث الخيارات</button>{/if}
+    {#if error}<button type="button" class="u-btn u-btn-ghost" disabled={loading || saving} onclick={load}><Icon icon={RefreshCw} size={15} /> تحديث الخيارات</button>{/if}
     <button type="submit" form="hosting-form" class="u-btn u-btn-primary" disabled={saving || loading || (mode === 'swap' ? !replacements.length : !events.length)}>
+      <Icon icon={mode === 'swap' ? Send : Save} size={15} />
       {saving ? 'جارٍ الحفظ…' : mode === 'swap' ? 'إرسال الطلب' : isEdit ? 'حفظ' : 'إضافة'}
     </button>
   </div>

@@ -37,12 +37,12 @@ export function hijriDate(iso: string | null | undefined): string {
 }
 
 export const EVENT_TYPES: Record<string, { label: string; color: string; owner: string }> = {
-  weekly:       { label: 'طلعة الأربعاء', color: '#0E2B22', owner: 'super_admin' },
-  sport:        { label: 'رياضي',          color: '#BFA67A', owner: 'mod_sports' },
-  cultural:     { label: 'ثقافي',          color: '#2E6B52', owner: 'mod_cultural' },
-  competition:  { label: 'مسابقة',         color: '#8B5A2B', owner: 'mod_competitions' },
-  event:        { label: 'فعالية مصاحبة',  color: '#1A4536', owner: 'mod_trips' },
-  hospitality:  { label: 'ضيافة',          color: '#A89070', owner: 'mod_hospitality' }
+  weekly:       { label: 'طلعة الأربعاء', color: 'var(--brand)', owner: 'super_admin' },
+  sport:        { label: 'رياضي',          color: 'var(--gold)', owner: 'mod_sports' },
+  cultural:     { label: 'ثقافي',          color: 'var(--brand-3)', owner: 'mod_cultural' },
+  competition:  { label: 'مسابقة',         color: 'var(--warn)', owner: 'mod_competitions' },
+  event:        { label: 'فعالية مصاحبة',  color: 'var(--brand-2)', owner: 'mod_trips' },
+  hospitality:  { label: 'ضيافة',          color: 'var(--gold-dark)', owner: 'mod_hospitality' }
 };
 
 export function canCreateType(roles: string[], type: string): boolean {

@@ -1,12 +1,14 @@
 <script lang="ts">
+  import { CalendarDays, House, UserCheck, Users, CircleUserRound } from 'lucide-svelte';
   import { route } from '../stores';
+  import Icon from './Icon.svelte';
 
   const items = [
-    { k: 'home',       t: 'الرئيسية', i: '🏠' },
-    { k: 'events',     t: 'الفعاليات', i: '📅' },
-    { k: 'hosting',    t: 'المعازيب', i: '🫖' },
-    { k: 'attendance', t: 'الحضور',   i: '✓' },
-    { k: 'account',    t: 'حسابي',   i: '👤' }
+    { k: 'home',       t: 'الرئيسية', icon: House },
+    { k: 'events',     t: 'الفعاليات', icon: CalendarDays },
+    { k: 'hosting',    t: 'المعازيب', icon: Users },
+    { k: 'attendance', t: 'الحضور',   icon: UserCheck },
+    { k: 'account',    t: 'حسابي',    icon: CircleUserRound }
   ];
 </script>
 
@@ -18,7 +20,8 @@
       onclick={() => route.set(it.k)}
       aria-current={$route === it.k ? 'page' : undefined}
     >
-      <span class="ic" aria-hidden="true">{it.i}</span>
+      <span class="nav-icon"><Icon icon={it.icon} size={22} strokeWidth={1.75} /></span>
+      <span class="nav-dot" aria-hidden="true"></span>
       <span class="t">{it.t}</span>
     </button>
   {/each}

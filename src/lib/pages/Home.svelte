@@ -1,9 +1,12 @@
 <script lang="ts">
   import { onMount } from 'svelte';
+  import { BarChart3, CalendarDays, ChevronLeft, Clock, House, MapPin, UserCheck, Users } from 'lucide-svelte';
   import { supabase } from '../supabase';
   import { profile, roles, route } from '../stores';
-  import { fmtDT, EVENT_TYPES } from '../utils';
+  import { fmtDate, fmtTime, EVENT_TYPES } from '../utils';
   import PageHead from '../components/PageHead.svelte';
+  import Icon from '../components/Icon.svelte';
+  import EmptyIllustrations from '../components/EmptyIllustrations.svelte';
 
   let nextEvent = $state<any>(null);
   let loading = $state(true);
@@ -53,146 +56,98 @@
   const firstName = $derived(($profile?.full_name || 'عضو').split(' ')[0]);
 </script>
 
-<PageHead icon="🏠" title={`أهلاً، ${firstName}`} />
+<PageHead icon={House} title={`أهلاً، ${firstName}`} subtitle="ملخص نشاط المجموعة وما هو قادم" />
 
 {#if loading}
-  <div class="u-skel u-skel-card"></div>
+  <div class="u-skel u-skel-card hero-skeleton"></div>
 {:else if nextEvent}
-  <article class="u-hero">
-    <div class="hero-head">الفعالية القادمة</div>
+  <article class="u-hero next-event">
+    <div class="hero-label">الفعالية القادمة</div>
     <h2>{nextEvent.title}</h2>
-    <p>
-      {fmtDT(nextEvent.start_datetime)}
-      {#if nextEvent.location_name} · 📍 {nextEvent.location_name}{/if}
-    </p>
-    <div class="countdown" aria-label="العد التنازلي">
-      <div class="unit"><span class="n">{countdown.d}</span><span class="l">يوم</span></div>
-      <div class="unit"><span class="n">{countdown.h}</span><span class="l">ساعة</span></div>
-      <div class="unit"><span class="n">{countdown.m}</span><span class="l">دقيقة</span></div>
+    <div class="event-meta">
+      <span><Icon icon={Clock} size={15} /> {fmtDate(nextEvent.start_datetime)} · {fmtTime(nextEvent.start_datetime)}</span>
+      {#if nextEvent.location_name}<span><Icon icon={MapPin} size={15} /> {nextEvent.location_name}</span>{/if}
     </div>
-    <span class="u-pill solid type-pill">{EVENT_TYPES[nextEvent.type]?.label || nextEvent.type}</span>
+    <div class="countdown num" aria-label="العد التنازلي">خلال {countdown.d} يوم، {countdown.h} ساعة</div>
+    <span class="event-type"><span class="type-dot"></span>{EVENT_TYPES[nextEvent.type]?.label || nextEvent.type}</span>
   </article>
 {:else}
   <div class="u-empty">
-    <div class="ic">📅</div>
+    <EmptyIllustrations kind="calendar" />
     <h3>لا توجد فعالية مجدولة</h3>
     <p>سيظهر هنا كل جديد.</p>
   </div>
 {/if}
 
+<section class="u-card quick-card">
+  <div class="u-card-h">وصول سريع</div>
+  <div class="quick-grid">
+    <button class="quick-action" onclick={() => route.set('events')}>
+      <span class="quick-icon"><Icon icon={CalendarDays} size={19} /></span>
+      <span>الفعاليات</span>
+      <Icon icon={ChevronLeft} size={15} />
+    </button>
+    <button class="quick-action" onclick={() => route.set('hosting')}>
+      <span class="quick-icon"><Icon icon={Users} size={19} /></span>
+      <span>المعازيب</span>
+      <Icon icon={ChevronLeft} size={15} />
+    </button>
+    <button class="quick-action" onclick={() => route.set('attendance')}>
+      <span class="quick-icon"><Icon icon={UserCheck} size={19} /></span>
+      <span>الحضور</span>
+      <Icon icon={ChevronLeft} size={15} />
+    </button>
+  </div>
+</section>
+
 {#if canSeeReports}
   <button class="u-card interactive admin-card" onclick={() => route.set('reports')}>
-    <div class="admin-card-row">
-      <div class="admin-ic">📊</div>
-      <div class="admin-text">
-        <div class="admin-title">التقارير والإحصائيات</div>
-        <div class="admin-sub">نسب الحضور، أفضل الأعضاء، إحصائيات شهرية</div>
-      </div>
-      <div class="chevron" aria-hidden="true">←</div>
+    <span class="quick-icon"><Icon icon={BarChart3} size={19} /></span>
+    <div class="admin-text">
+      <div class="admin-title">التقارير والإحصائيات</div>
+      <div class="admin-sub">نسب الحضور وأداء الفعاليات والاستضافة</div>
     </div>
+    <Icon icon={ChevronLeft} size={17} />
   </button>
 {/if}
 
-<div class="u-card">
-  <div class="u-card-h">🎉 أهلاً بك في منصة تواق</div>
-  <p class="welcome-text">الإصدار الجديد قيد البناء التدريجي. ابدأ باستكشاف:</p>
-  <ul class="feature-list">
-    <li>📅 <b>الفعاليات</b> — تصفّح الجدول الكامل وأنشئ فعاليات جديدة</li>
-    <li>🫖 <b>المعازيب</b> — جدول الاستضافة الأسبوعي مع التأكيد والتبديل</li>
-    <li>✓ <b>الحضور</b> — تحضير ذكي بالموقع (Geofence)</li>
-    <li>👤 <b>حسابي</b> — بياناتك وصلاحياتك</li>
-  </ul>
-</div>
-
 <style>
-  .hero-head {
-    font: var(--fw-semi) var(--fs-xs) var(--font-sans);
-    opacity: 0.78;
-    margin-bottom: var(--sp-05);
-    position: relative;
+  .hero-skeleton { min-height: calc(var(--sp-8) * 3); }
+  .next-event { position: relative; display: flex; flex-direction: column; gap: var(--sp-2); }
+  .hero-label {
+    color: var(--ink3);
+    font: var(--fw-semi) var(--fs-tiny) var(--font-sans);
+    letter-spacing: var(--tracking-wide);
+    text-transform: uppercase;
   }
+  .next-event h2 { margin: 0; font: var(--fw-bold) var(--fs-2xl)/1.3 var(--font-sans); color: var(--ink); }
+  .event-meta { display: flex; flex-wrap: wrap; gap: var(--sp-2); color: var(--ink2); font-size: var(--fs-sm); }
+  .event-meta span { display: inline-flex; align-items: center; gap: var(--sp-05); }
+  .countdown { color: var(--brand-ink); font: var(--fw-semi) var(--fs-sm) var(--font-num); }
+  .event-type { display: inline-flex; align-items: center; gap: var(--sp-1); color: var(--ink3); font-size: var(--fs-xs); }
+  .type-dot { width: calc(var(--sp-1) - 2px); height: calc(var(--sp-1) - 2px); border-radius: var(--r-pill); background: var(--brand); }
 
-  .countdown {
-    display: flex;
-    gap: var(--sp-1);
-    justify-content: center;
-    margin: var(--sp-2) 0 var(--sp-1);
-    position: relative;
-  }
-  .unit {
-    background: rgba(255,255,255,.08);
-    border: 1px solid rgba(217,199,154,.3);
-    border-radius: var(--r-sm);
-    padding: var(--sp-1) var(--sp-05);
-    min-width: 68px;
-    text-align: center;
-  }
-  .unit .n {
-    display: block;
-    font: var(--fw-bold) var(--fs-2xl)/1 var(--font-num);
-    font-variant-numeric: tabular-nums;
-    color: var(--gold-bright);
-  }
-  .unit .l {
-    display: block;
-    font-size: var(--fs-tiny);
-    opacity: 0.75;
-    margin-top: var(--sp-05);
-  }
-  .type-pill {
-    position: relative;
-    background: rgba(255,255,255,.14);
-    color: var(--on-brand);
-  }
-
-  .admin-card { margin-bottom: var(--sp-2); text-align: start; width: 100%; }
-  .admin-card-row {
-    display: flex;
+  .quick-card { display: flex; flex-direction: column; gap: var(--sp-2); }
+  .quick-grid { display: grid; gap: var(--sp-1); }
+  .quick-action {
+    display: grid;
+    grid-template-columns: auto 1fr auto;
     align-items: center;
     gap: var(--sp-2);
+    min-height: var(--touch);
+    padding: var(--sp-1) var(--sp-2);
+    border: 1px solid var(--line);
+    border-radius: var(--r-xs);
+    background: transparent;
+    color: var(--ink);
+    text-align: start;
+    font: var(--fw-semi) var(--fs-sm) var(--font-sans);
   }
-  .admin-ic {
-    width: 42px; height: 42px;
-    background: var(--gold-soft);
-    border-radius: var(--r-md);
-    display: flex;
-    align-items: center;
-    justify-content: center;
-    font-size: var(--fs-xl);
-    flex-shrink: 0;
-  }
-  .admin-text { flex: 1; min-width: 0; }
-  .admin-title {
-    font: var(--fw-bold) var(--fs-base) var(--font-sans);
-    color: var(--brand);
-  }
-  .admin-sub {
-    font: var(--fw-regular) var(--fs-xs) var(--font-sans);
-    color: var(--ink3);
-    margin-top: 2px;
-  }
-  .chevron {
-    color: var(--brand);
-    font: var(--fw-bold) var(--fs-lg) var(--font-sans);
-    flex-shrink: 0;
-  }
+  .quick-action:hover { background: var(--muted-bg); border-color: var(--line2); }
+  .quick-icon { width: var(--sp-6); height: var(--sp-6); display: grid; place-items: center; color: var(--brand); background: var(--brand-soft); border-radius: var(--r-xs); }
 
-  .welcome-text {
-    color: var(--ink2);
-    font-size: var(--fs-sm);
-    margin: 0 0 var(--sp-2);
-  }
-  .feature-list {
-    list-style: none;
-    padding: 0;
-    margin: 0;
-  }
-  .feature-list li {
-    padding: var(--sp-1) 0;
-    font-size: var(--fs-sm);
-    color: var(--ink2);
-    border-bottom: 1px dashed var(--line);
-    line-height: var(--lh-base);
-  }
-  .feature-list li:last-child { border-bottom: none; }
+  .admin-card { display: flex; align-items: center; gap: var(--sp-2); text-align: start; width: 100%; color: var(--ink2); }
+  .admin-text { flex: 1; min-width: 0; }
+  .admin-title { font: var(--fw-bold) var(--fs-base) var(--font-sans); color: var(--ink); }
+  .admin-sub { font-size: var(--fs-xs); color: var(--ink3); margin-top: var(--sp-05); }
 </style>

@@ -1,5 +1,8 @@
 <script lang="ts">
+  import { ArrowLeft, LogIn } from 'lucide-svelte';
   import { supabase } from './supabase';
+  import HexLogo from './components/HexLogo.svelte';
+  import Icon from './components/Icon.svelte';
 
   let email = $state('');
   let password = $state('');
@@ -31,7 +34,7 @@
 <div class="login-wrap">
   <div class="login-card">
     <div class="brand-area">
-      <div class="brand-hex"></div>
+      <HexLogo size={64} />
       <h1>مجموعة تواق</h1>
       <p>من الحلقة إلى الفريق</p>
     </div>
@@ -52,6 +55,7 @@
       </div>
 
       <button class="u-btn u-btn-primary block" type="submit" disabled={loading}>
+        <Icon icon={mode === 'signin' ? LogIn : ArrowLeft} size={16} />
         {loading ? 'جارٍ…' : (mode === 'signin' ? 'دخول' : 'إنشاء حساب')}
       </button>
 
@@ -62,7 +66,7 @@
     </form>
   </div>
 
-  <p class="footer">منصة تواق · النسخة 2.0 · قيد البناء 🚧</p>
+  <p class="footer">منصة تواق · النسخة 2.0</p>
 </div>
 
 <style>
@@ -74,7 +78,7 @@
     align-items: center;
     justify-content: center;
     padding: var(--sp-4);
-    background: linear-gradient(160deg, var(--brand) 0%, #061612 100%);
+    background: linear-gradient(160deg, var(--brand), color-mix(in oklab, var(--brand) 82%, var(--ink)));
     position: relative;
     overflow: hidden;
   }
@@ -90,7 +94,7 @@
 
   .login-card {
     background: var(--card);
-    border-radius: var(--r-2xl);
+    border-radius: var(--r-lg);
     padding: var(--sp-5) var(--sp-4);
     box-shadow: var(--shadow-lg);
     max-width: 400px;
@@ -100,12 +104,7 @@
   }
 
   .brand-area { text-align: center; margin-bottom: var(--sp-4); }
-  .brand-hex {
-    width: var(--hex-size-md); height: var(--hex-size-md);
-    background: var(--gold);
-    clip-path: var(--hex-clip);
-    margin: 0 auto var(--sp-2);
-  }
+  .brand-area :global(.hex-logo) { margin: 0 auto var(--sp-2); }
   .brand-area h1 {
     color: var(--brand);
     font: var(--fw-bold) var(--fs-2xl) var(--font-sans);

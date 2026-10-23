@@ -13,19 +13,21 @@
 <div class="u-shell">
   <TopBar />
   <main class="u-page">
-    {#if $route === 'home'}
-      <Home />
-    {:else if $route === 'events'}
-      <Events />
-    {:else if $route === 'hosting'}
-      <Hosting />
-    {:else if $route === 'attendance'}
-      <Attendance />
-    {:else if $route === 'reports'}
-      <Reports />
-    {:else if $route === 'account'}
-      <Account />
-    {/if}
+    <div class="page-view" data-route={$route}>
+      {#if $route === 'home'}
+        <Home />
+      {:else if $route === 'events'}
+        <Events />
+      {:else if $route === 'hosting'}
+        <Hosting />
+      {:else if $route === 'attendance'}
+        <Attendance />
+      {:else if $route === 'reports'}
+        <Reports />
+      {:else if $route === 'account'}
+        <Account />
+      {/if}
+    </div>
   </main>
   <BottomNav />
 </div>
