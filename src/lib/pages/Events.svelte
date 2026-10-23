@@ -3,7 +3,7 @@
   import { CalendarDays, Clock, MapPin, Pencil, Plus, Trash2 } from 'lucide-svelte';
   import { supabase } from '../supabase';
   import { roles } from '../stores';
-  import { fmtDate, fmtTime, EVENT_TYPES, myAllowedTypes, canCreateType } from '../utils';
+  import { fmtDate, fmtTime, hijriDate, EVENT_TYPES, myAllowedTypes, canCreateType } from '../utils';
   import PageHead from '../components/PageHead.svelte';
   import Icon from '../components/Icon.svelte';
   import EmptyIllustrations from '../components/EmptyIllustrations.svelte';
@@ -56,7 +56,15 @@
   }
 </script>
 
-<PageHead icon={CalendarDays} title="جدول الفعاليات" subtitle="الفعاليات القادمة مرتبة حسب اليوم" />
+<PageHead icon={CalendarDays} title="جدول الفعاليات" subtitle="الفعاليات القادمة مرتبة حسب اليوم">
+  {#snippet action()}
+    {#if allowedTypes.length}
+      <button class="u-btn u-btn-primary sm" onclick={openCreate}>
+        <Icon icon={Plus} size={15} /> إضافة
+      </button>
+    {/if}
+  {/snippet}
+</PageHead>
 
 <div class="filters">
   <div class="u-chips">
@@ -65,9 +73,6 @@
       <button class="u-chip" class:on={filter === k} onclick={() => filter = k}>{v.label}</button>
     {/each}
   </div>
-  {#if allowedTypes.length}
-    <button class="u-btn u-btn-primary sm" onclick={openCreate}><Icon icon={Plus} size={15} /> إضافة</button>
-  {/if}
 </div>
 
 {#if loading}
@@ -86,7 +91,10 @@
   </div>
 {:else}
   {#each groupedByDay as [day, dayEvents] (day)}
-    <div class="u-day-head">{fmtDate(day)}</div>
+    <div class="u-day-head">
+      {fmtDate(day)}
+      <span class="hijri">· {hijriDate(day)}</span>
+    </div>
     {#each dayEvents as e (e.id)}
       <article class="tw-event">
         <time class="tw-event-date" datetime={e.start_datetime}>
@@ -138,6 +146,9 @@
     line-height: var(--lh-base);
   }
 
+  .u-day-head .hijri { color: var(--ink3); font-weight: var(--fw-regular); margin-inline-start: var(--sp-05); }
+  .type-weekly { background: var(--brand); }
+  .type-event { background: var(--brand-2); }
   .type-sport { background: var(--gold); }
   .type-cultural { background: var(--brand-3); }
   .type-competition { background: var(--warn); }

@@ -4,6 +4,7 @@
   import { supabase } from '../supabase';
   import { session, profile, roles } from '../stores';
   import { getPushStatus, subscribeToPush, unsubscribeFromPush, type PushStatus } from '../push';
+  import { initials } from '../utils';
   import PageHead from '../components/PageHead.svelte';
   import Icon from '../components/Icon.svelte';
 
@@ -28,11 +29,6 @@
     mod_media: 'لجنة التصميم والإعلام',
     member: 'عضو'
   };
-
-  function initials(name: string) {
-    const parts = String(name || '').trim().split(/\s+/);
-    return (parts[0] || '').charAt(0) + ((parts[1] || '').charAt(0) || '');
-  }
 
   async function logout() {
     if (!confirm('تسجيل الخروج؟')) return;

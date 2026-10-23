@@ -1,5 +1,15 @@
 const DAYS = ['الأحد','الاثنين','الثلاثاء','الأربعاء','الخميس','الجمعة','السبت'];
 
+export function initials(name: string): string {
+  const parts = String(name || '').trim().split(/\s+/);
+  const strip = (word: string) => word.replace(/^(ال|عبد|عبدال|أبو|ابن|بن|أم)/u, '').trim() || word;
+  const firstPart = strip(parts[0] || '');
+  const secondPart = strip(parts[1] || '');
+  const first = firstPart.charAt(0) || parts[0]?.charAt(0) || '';
+  const second = secondPart.charAt(0) || parts[1]?.charAt(0) || '';
+  return (first + second) || first || 'ع';
+}
+
 export function fmtDate(iso: string | null | undefined): string {
   if (!iso) return '';
   const d = new Date(iso);

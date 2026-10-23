@@ -3,7 +3,7 @@
   import { BarChart3, CalendarDays, ChevronLeft, Clock, House, MapPin, UserCheck, Users } from 'lucide-svelte';
   import { supabase } from '../supabase';
   import { profile, roles, route } from '../stores';
-  import { fmtDate, fmtTime, EVENT_TYPES } from '../utils';
+  import { fmtDate, fmtTime, hijriDate, EVENT_TYPES } from '../utils';
   import PageHead from '../components/PageHead.svelte';
   import Icon from '../components/Icon.svelte';
   import EmptyIllustrations from '../components/EmptyIllustrations.svelte';
@@ -65,7 +65,7 @@
     <div class="hero-label">الفعالية القادمة</div>
     <h2>{nextEvent.title}</h2>
     <div class="event-meta">
-      <span><Icon icon={Clock} size={15} /> {fmtDate(nextEvent.start_datetime)} · {fmtTime(nextEvent.start_datetime)}</span>
+      <span><Icon icon={Clock} size={15} /> {fmtDate(nextEvent.start_datetime)} · {fmtTime(nextEvent.start_datetime)} <span class="hijri">({hijriDate(nextEvent.start_datetime)})</span></span>
       {#if nextEvent.location_name}<span><Icon icon={MapPin} size={15} /> {nextEvent.location_name}</span>{/if}
     </div>
     <div class="countdown num" aria-label="العد التنازلي">خلال {countdown.d} يوم، {countdown.h} ساعة</div>
@@ -123,6 +123,7 @@
   .next-event h2 { margin: 0; font: var(--fw-bold) var(--fs-2xl)/1.3 var(--font-sans); color: var(--ink); }
   .event-meta { display: flex; flex-wrap: wrap; gap: var(--sp-2); color: var(--ink2); font-size: var(--fs-sm); }
   .event-meta span { display: inline-flex; align-items: center; gap: var(--sp-05); }
+  .hijri { color: var(--ink3); font-size: var(--fs-xs); }
   .countdown { color: var(--brand-ink); font: var(--fw-semi) var(--fs-sm) var(--font-num); }
   .event-type { display: inline-flex; align-items: center; gap: var(--sp-1); color: var(--ink3); font-size: var(--fs-xs); }
   .type-dot { width: calc(var(--sp-1) - 2px); height: calc(var(--sp-1) - 2px); border-radius: var(--r-pill); background: var(--brand); }
