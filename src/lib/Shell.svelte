@@ -5,6 +5,7 @@
   import Hosting from './pages/Hosting.svelte';
   import Attendance from './pages/Attendance.svelte';
   import Members from './pages/Members.svelte';
+  import Admin from './pages/Admin.svelte';
   import Reports from './pages/Reports.svelte';
   import Account from './pages/Account.svelte';
   import TopBar from './components/TopBar.svelte';
@@ -25,6 +26,8 @@
         <Attendance />
       {:else if $route === 'members'}
         <Members />
+      {:else if $route === 'admin'}
+        <Admin />
       {:else if $route === 'reports'}
         <Reports />
       {:else if $route === 'account'}
