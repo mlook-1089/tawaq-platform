@@ -6,6 +6,7 @@
   import Attendance from './pages/Attendance.svelte';
   import Members from './pages/Members.svelte';
   import Admin from './pages/Admin.svelte';
+  import News from './pages/News.svelte';
   import Reports from './pages/Reports.svelte';
   import Account from './pages/Account.svelte';
   import TopBar from './components/TopBar.svelte';
@@ -28,6 +29,8 @@
         <Members />
       {:else if $route === 'admin'}
         <Admin />
+      {:else if $route === 'news'}
+        <News />
       {:else if $route === 'reports'}
         <Reports />
       {:else if $route === 'account'}

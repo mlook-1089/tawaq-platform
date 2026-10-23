@@ -1,6 +1,18 @@
 <script lang="ts">
   import { onMount } from 'svelte';
-  import { BarChart3, CalendarDays, ChevronLeft, Clock, Contact, House, MapPin, UserCheck, Users } from 'lucide-svelte';
+  import {
+    BarChart3,
+    CalendarDays,
+    ChevronLeft,
+    Clock,
+    Contact,
+    House,
+    MapPin,
+    Megaphone,
+    UserCheck,
+    Users,
+    X
+  } from 'lucide-svelte';
   import { supabase } from '../supabase';
   import { profile, roles, route } from '../stores';
   import { fmtDate, fmtTime, hijriDate, EVENT_TYPES } from '../utils';
@@ -9,6 +21,8 @@
   import EmptyIllustrations from '../components/EmptyIllustrations.svelte';
 
   let nextEvent = $state<any>(null);
+  let latestPinnedNews = $state<any>(null);
+  let dismissedPinned = $state(false);
   let loading = $state(true);
   let countdown = $state({ d: 0, h: 0, m: 0 });
   let timer: ReturnType<typeof setInterval> | undefined;
@@ -21,15 +35,26 @@
   onMount(() => {
     let cancelled = false;
     void (async () => {
-      const { data } = await supabase
-        .from('events')
-        .select('id,type,title,start_datetime,end_datetime,location_name,color_tag')
-        .is('deleted_at', null)
-        .gte('start_datetime', new Date().toISOString())
-        .order('start_datetime', { ascending: true })
-        .limit(1);
+      const [{ data: evData }, { data: newsData }] = await Promise.all([
+        supabase
+          .from('events')
+          .select('id,type,title,start_datetime,end_datetime,location_name,color_tag')
+          .is('deleted_at', null)
+          .gte('start_datetime', new Date().toISOString())
+          .order('start_datetime', { ascending: true })
+          .limit(1),
+        supabase
+          .from('news')
+          .select('id,title,category')
+          .eq('pinned', true)
+          .is('deleted_at', null)
+          .order('published_at', { ascending: false })
+          .limit(1)
+      ]);
+
       if (cancelled) return;
-      nextEvent = data?.[0] || null;
+      nextEvent = evData?.[0] || null;
+      latestPinnedNews = newsData?.[0] || null;
       loading = false;
 
       if (nextEvent) {
@@ -38,8 +63,8 @@
           const diff = Math.max(0, target - Date.now());
           countdown = {
             d: Math.floor(diff / 86400000),
-            h: Math.floor(diff % 86400000 / 3600000),
-            m: Math.floor(diff % 3600000 / 60000)
+            h: Math.floor((diff % 86400000) / 3600000),
+            m: Math.floor((diff % 3600000) / 60000)
           };
         };
         tick();
@@ -55,6 +80,25 @@
 
   const firstName = $derived(($profile?.full_name || 'عضو').split(' ')[0]);
 </script>
+
+{#if latestPinnedNews && !dismissedPinned}
+  <div class="pinned-strip">
+    <div class="pinned-strip-right">
+      <span class="pinned-icon"><Icon icon={Megaphone} size={15} /></span>
+      <span class="pinned-text">{latestPinnedNews.title}</span>
+    </div>
+    <div class="pinned-strip-left">
+      <button class="pinned-link" onclick={() => route.set('news')}>اقرأ</button>
+      <button
+        class="pinned-close"
+        onclick={() => (dismissedPinned = true)}
+        aria-label="إغلاق التنبيه"
+      >
+        <Icon icon={X} size={14} />
+      </button>
+    </div>
+  </div>
+{/if}
 
 <PageHead icon={House} title={`أهلاً، ${firstName}`} subtitle="ملخص نشاط المجموعة وما هو قادم" />
 
@@ -78,6 +122,15 @@
     <p>سيظهر هنا كل جديد.</p>
   </div>
 {/if}
+
+<button class="u-card interactive news-promo-card" onclick={() => route.set('news')}>
+  <div class="news-promo-icon"><Icon icon={Megaphone} size={20} /></div>
+  <div class="news-promo-text">
+    <div class="news-promo-title">الأخبار والإعلانات</div>
+    <div class="news-promo-sub">مستجدات المجموعة، التهاني، والقرارات الرسمية</div>
+  </div>
+  <Icon icon={ChevronLeft} size={17} />
+</button>
 
 <section class="u-card quick-card">
   <div class="u-card-h">وصول سريع</div>
@@ -117,8 +170,98 @@
 {/if}
 
 <style>
+  .pinned-strip {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    gap: var(--sp-1);
+    background: var(--gold-soft);
+    border: 1px solid var(--gold);
+    color: var(--gold-dark);
+    padding: var(--sp-1) var(--sp-2);
+    border-radius: var(--r-md);
+    margin-bottom: var(--sp-2);
+    font-size: var(--fs-xs);
+  }
+  .pinned-strip-right {
+    display: flex;
+    align-items: center;
+    gap: var(--sp-1);
+    flex: 1;
+    min-width: 0;
+  }
+  .pinned-icon {
+    display: grid;
+    place-items: center;
+    color: var(--gold-dark);
+    flex-shrink: 0;
+  }
+  .pinned-text {
+    overflow: hidden;
+    text-overflow: ellipsis;
+    white-space: nowrap;
+    font-weight: var(--fw-semi);
+  }
+  .pinned-strip-left {
+    display: flex;
+    align-items: center;
+    gap: var(--sp-1);
+    flex-shrink: 0;
+  }
+  .pinned-link {
+    background: var(--gold);
+    color: var(--on-gold);
+    border: none;
+    border-radius: var(--r-xs);
+    padding: 2px 8px;
+    font: var(--fw-bold) var(--fs-tiny) var(--font-sans);
+    cursor: pointer;
+  }
+  .pinned-close {
+    background: transparent;
+    border: none;
+    color: var(--gold-dark);
+    cursor: pointer;
+    display: grid;
+    place-items: center;
+    padding: 2px;
+  }
+
+  .news-promo-card {
+    display: flex;
+    align-items: center;
+    gap: var(--sp-2);
+    text-align: start;
+    width: 100%;
+    margin-bottom: var(--sp-2);
+    color: var(--ink2);
+  }
+  .news-promo-icon {
+    width: var(--touch);
+    height: var(--touch);
+    display: grid;
+    place-items: center;
+    background: var(--brand-soft);
+    color: var(--brand-ink);
+    border-radius: var(--r-xs);
+    flex-shrink: 0;
+  }
+  .news-promo-text {
+    flex: 1;
+    min-width: 0;
+  }
+  .news-promo-title {
+    font: var(--fw-bold) var(--fs-base) var(--font-sans);
+    color: var(--ink);
+  }
+  .news-promo-sub {
+    font-size: var(--fs-xs);
+    color: var(--ink3);
+    margin-top: 2px;
+  }
+
   .hero-skeleton { min-height: calc(var(--sp-8) * 3); }
-  .next-event { position: relative; display: flex; flex-direction: column; gap: var(--sp-2); }
+  .next-event { position: relative; display: flex; flex-direction: column; gap: var(--sp-2); margin-bottom: var(--sp-2); }
   .hero-label {
     color: var(--ink3);
     font: var(--fw-semi) var(--fs-tiny) var(--font-sans);
@@ -133,7 +276,7 @@
   .event-type { display: inline-flex; align-items: center; gap: var(--sp-1); color: var(--ink3); font-size: var(--fs-xs); }
   .type-dot { width: calc(var(--sp-1) - 2px); height: calc(var(--sp-1) - 2px); border-radius: var(--r-pill); background: var(--brand); }
 
-  .quick-card { display: flex; flex-direction: column; gap: var(--sp-2); }
+  .quick-card { display: flex; flex-direction: column; gap: var(--sp-2); margin-bottom: var(--sp-2); }
   .quick-grid { display: grid; gap: var(--sp-1); }
   .quick-action {
     display: grid;
