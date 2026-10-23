@@ -1,7 +1,7 @@
 <script lang="ts">
   import { onMount } from 'svelte';
   import { supabase } from '../supabase';
-  import { profile } from '../stores';
+  import { profile, roles, route } from '../stores';
   import { fmtDT, EVENT_TYPES } from '../utils';
   import PageHead from '../components/PageHead.svelte';
 
@@ -9,6 +9,11 @@
   let loading = $state(true);
   let countdown = $state({ d: 0, h: 0, m: 0 });
   let timer: any;
+
+  const canSeeReports = $derived(
+    $roles.includes('super_admin') ||
+    $roles.some(r => r.startsWith('mod_'))
+  );
 
   onMount(async () => {
     const { data } = await supabase
@@ -41,111 +46,146 @@
   const firstName = $derived(($profile?.full_name || 'عضو').split(' ')[0]);
 </script>
 
-<PageHead icon="🏠" title="أهلاً، {firstName}" />
+<PageHead icon="🏠" title={`أهلاً، ${firstName}`} />
 
 {#if loading}
-  <div class="skel"></div>
+  <div class="u-skel u-skel-card"></div>
 {:else if nextEvent}
-  <div class="hero" style="background: linear-gradient(155deg, {nextEvent.color_tag || '#0E2B22'} 0%, #1A4536 100%)">
-    <div class="big-hex"></div>
-    <div class="sec-t">الفعالية القادمة</div>
+  <article class="u-hero">
+    <div class="hero-head">الفعالية القادمة</div>
     <h2>{nextEvent.title}</h2>
-    <p class="sub">
+    <p>
       {fmtDT(nextEvent.start_datetime)}
       {#if nextEvent.location_name} · 📍 {nextEvent.location_name}{/if}
     </p>
-    <div class="cd">
-      <div class="u"><span class="n">{countdown.d}</span><span class="l">يوم</span></div>
-      <div class="u"><span class="n">{countdown.h}</span><span class="l">ساعة</span></div>
-      <div class="u"><span class="n">{countdown.m}</span><span class="l">دقيقة</span></div>
+    <div class="countdown" aria-label="العد التنازلي">
+      <div class="unit"><span class="n">{countdown.d}</span><span class="l">يوم</span></div>
+      <div class="unit"><span class="n">{countdown.h}</span><span class="l">ساعة</span></div>
+      <div class="unit"><span class="n">{countdown.m}</span><span class="l">دقيقة</span></div>
     </div>
-    <span class="type-tag">{EVENT_TYPES[nextEvent.type]?.label || nextEvent.type}</span>
-  </div>
+    <span class="u-pill solid type-pill">{EVENT_TYPES[nextEvent.type]?.label || nextEvent.type}</span>
+  </article>
 {:else}
-  <div class="card empty">
+  <div class="u-empty">
     <div class="ic">📅</div>
     <h3>لا توجد فعالية مجدولة</h3>
     <p>سيظهر هنا كل جديد.</p>
   </div>
 {/if}
 
-<div class="card welcome">
-  <h3>🎉 أهلاً بك في منصة تواق</h3>
-  <p>الإصدار الجديد قيد البناء التدريجي. ابدأ باستكشاف:</p>
-  <ul>
-    <li>📅 <b>الفعاليات</b> — تصفّح الجدول الكامل وأنشئ فعاليات جديدة (إذا كانت لديك صلاحية)</li>
-    <li>🫖 <b>المعازيب</b> — جدول الاستضافة الأسبوعي (قريباً)</li>
-    <li>✓ <b>الحضور</b> — QR + تحضير ذاتي بالموقع (قريباً)</li>
+{#if canSeeReports}
+  <button class="u-card interactive admin-card" onclick={() => route.set('reports')}>
+    <div class="admin-card-row">
+      <div class="admin-ic">📊</div>
+      <div class="admin-text">
+        <div class="admin-title">التقارير والإحصائيات</div>
+        <div class="admin-sub">نسب الحضور، أفضل الأعضاء، إحصائيات شهرية</div>
+      </div>
+      <div class="chevron" aria-hidden="true">←</div>
+    </div>
+  </button>
+{/if}
+
+<div class="u-card">
+  <div class="u-card-h">🎉 أهلاً بك في منصة تواق</div>
+  <p class="welcome-text">الإصدار الجديد قيد البناء التدريجي. ابدأ باستكشاف:</p>
+  <ul class="feature-list">
+    <li>📅 <b>الفعاليات</b> — تصفّح الجدول الكامل وأنشئ فعاليات جديدة</li>
+    <li>🫖 <b>المعازيب</b> — جدول الاستضافة الأسبوعي مع التأكيد والتبديل</li>
+    <li>✓ <b>الحضور</b> — تحضير ذكي بالموقع (Geofence)</li>
     <li>👤 <b>حسابي</b> — بياناتك وصلاحياتك</li>
   </ul>
 </div>
 
 <style>
-  .skel { height: 180px; background: var(--muted-bg); border-radius: 20px; animation: pulse 1.4s ease-in-out infinite; }
-  @keyframes pulse { 0%,100% { opacity: 1; } 50% { opacity: .5; } }
-
-  .hero {
-    color: var(--on-brand);
-    border-radius: 20px;
-    padding: 24px 20px;
+  .hero-head {
+    font: var(--fw-semi) var(--fs-xs) var(--font-sans);
+    opacity: 0.78;
+    margin-bottom: var(--sp-05);
     position: relative;
-    overflow: hidden;
-    box-shadow: var(--shadow-lg);
-    margin-bottom: 16px;
   }
-  .big-hex {
-    position: absolute; top: -50px; left: -50px;
-    width: 170px; height: 170px;
-    background: var(--gold);
-    opacity: .10;
-    clip-path: polygon(25% 5%, 75% 5%, 100% 50%, 75% 95%, 25% 95%, 0 50%);
-  }
-  .sec-t { font-size: 12.5px; font-weight: 600; opacity: .78; margin-bottom: 6px; position: relative; }
-  h2 { font-size: 20px; font-weight: 700; margin: 0 0 6px; position: relative; }
-  .sub { color: var(--gold-bright); font-size: 12.5px; margin-bottom: 14px; position: relative; }
 
-  .cd { display: flex; gap: 10px; justify-content: center; margin: 14px 0 10px; position: relative; }
-  .u {
+  .countdown {
+    display: flex;
+    gap: var(--sp-1);
+    justify-content: center;
+    margin: var(--sp-2) 0 var(--sp-1);
+    position: relative;
+  }
+  .unit {
     background: rgba(255,255,255,.08);
     border: 1px solid rgba(217,199,154,.3);
-    border-radius: 13px;
-    padding: 10px 7px;
-    min-width: 68px; text-align: center;
+    border-radius: var(--r-sm);
+    padding: var(--sp-1) var(--sp-05);
+    min-width: 68px;
+    text-align: center;
   }
-  .n { display: block; font-size: 24px; font-weight: 700; line-height: 1; font-variant-numeric: tabular-nums; color: var(--gold-bright); }
-  .l { font-size: 10.5px; opacity: .75; margin-top: 6px; display: block; }
-  .type-tag {
-    display: inline-block;
-    background: rgba(255,255,255,.14);
-    color: #fff;
-    padding: 4px 11px;
-    border-radius: 99px;
-    font-size: 10.5px;
-    font-weight: 600;
-    margin-top: 4px;
+  .unit .n {
+    display: block;
+    font: var(--fw-bold) var(--fs-2xl)/1 var(--font-num);
+    font-variant-numeric: tabular-nums;
+    color: var(--gold-bright);
+  }
+  .unit .l {
+    display: block;
+    font-size: var(--fs-tiny);
+    opacity: 0.75;
+    margin-top: var(--sp-05);
+  }
+  .type-pill {
     position: relative;
+    background: rgba(255,255,255,.14);
+    color: var(--on-brand);
   }
 
-  .card {
-    background: var(--card);
-    border: 1px solid var(--line);
-    border-radius: 18px;
-    padding: 18px;
-    box-shadow: var(--shadow);
-    margin-bottom: 13px;
+  .admin-card { margin-bottom: var(--sp-2); text-align: start; width: 100%; }
+  .admin-card-row {
+    display: flex;
+    align-items: center;
+    gap: var(--sp-2);
   }
-  .empty { text-align: center; padding: 32px 18px; color: var(--ink3); }
-  .empty .ic { font-size: 42px; opacity: .4; margin-bottom: 10px; }
-  .empty h3 { color: var(--ink2); margin-bottom: 5px; }
+  .admin-ic {
+    width: 42px; height: 42px;
+    background: var(--gold-soft);
+    border-radius: var(--r-md);
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    font-size: var(--fs-xl);
+    flex-shrink: 0;
+  }
+  .admin-text { flex: 1; min-width: 0; }
+  .admin-title {
+    font: var(--fw-bold) var(--fs-base) var(--font-sans);
+    color: var(--brand);
+  }
+  .admin-sub {
+    font: var(--fw-regular) var(--fs-xs) var(--font-sans);
+    color: var(--ink3);
+    margin-top: 2px;
+  }
+  .chevron {
+    color: var(--brand);
+    font: var(--fw-bold) var(--fs-lg) var(--font-sans);
+    flex-shrink: 0;
+  }
 
-  .welcome h3 { color: var(--brand); font-size: 15px; margin-bottom: 8px; }
-  .welcome p { color: var(--ink2); font-size: 13px; margin-bottom: 10px; }
-  .welcome ul { list-style: none; padding: 0; }
-  .welcome li {
-    padding: 8px 0;
-    font-size: 13px;
+  .welcome-text {
+    color: var(--ink2);
+    font-size: var(--fs-sm);
+    margin: 0 0 var(--sp-2);
+  }
+  .feature-list {
+    list-style: none;
+    padding: 0;
+    margin: 0;
+  }
+  .feature-list li {
+    padding: var(--sp-1) 0;
+    font-size: var(--fs-sm);
     color: var(--ink2);
     border-bottom: 1px dashed var(--line);
+    line-height: var(--lh-base);
   }
-  .welcome li:last-child { border-bottom: none; }
+  .feature-list li:last-child { border-bottom: none; }
 </style>

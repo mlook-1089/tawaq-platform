@@ -3,7 +3,8 @@
   import { roles } from '../stores';
   import { EVENT_TYPES, fmtInput, myAllowedTypes } from '../utils';
 
-  let { event = null, onclose, onsaved }: { event?: any; onclose: () => void; onsaved: () => void } = $props();
+  let { event = null, onclose, onsaved }:
+    { event?: any; onclose: () => void; onsaved: () => void } = $props();
 
   const isEdit = !!event;
   const allowedTypes = $derived(isEdit ? [event.type] : myAllowedTypes($roles));
@@ -20,6 +21,8 @@
   let geofence_radius = $state<string>(event?.geofence_radius_m?.toString() || '150');
   let gettingLocation = $state(false);
   let locMsg = $state('');
+  let saving = $state(false);
+  let error = $state('');
 
   async function useMyLocation() {
     gettingLocation = true;
@@ -43,8 +46,6 @@
       { enableHighAccuracy: true, timeout: 10000 }
     );
   }
-  let saving = $state(false);
-  let error = $state('');
 
   async function save(e: Event) {
     e.preventDefault();
@@ -80,240 +81,127 @@
   }
 </script>
 
-<div class="overlay" onclick={onclose} role="button" tabindex="-1" onkeydown={(e) => e.key === 'Escape' && onclose()}>
-  <div class="modal" onclick={(e) => e.stopPropagation()} role="dialog" tabindex="-1">
-    <div class="mh">
+<div class="u-modal" onclick={onclose} onkeydown={(e) => e.key === 'Escape' && onclose()} role="presentation">
+  <div class="u-modal-scrim"></div>
+  <div class="u-modal-box wide" onclick={(e) => e.stopPropagation()} role="dialog" aria-modal="true" tabindex="-1">
+    <div class="u-sheet-handle"></div>
+    <div class="u-modal-header">
       <span>{isEdit ? 'تعديل فعالية' : 'فعالية جديدة'}</span>
-      <button class="x" onclick={onclose}>✕</button>
+      <button class="u-modal-close" onclick={onclose} aria-label="إغلاق">✕</button>
     </div>
-    <form class="mb" onsubmit={save}>
-      {#if error}<div class="alert err">{error}</div>{/if}
 
-      <div class="field">
-        <label>النوع *</label>
-        <select bind:value={type} disabled={isEdit}>
+    <form class="u-modal-body" onsubmit={save}>
+      {#if error}<div class="u-alert err">{error}</div>{/if}
+
+      <div class="u-field">
+        <label for="ef-type" class="u-field-label">النوع *</label>
+        <select id="ef-type" class="u-input u-select" bind:value={type} disabled={isEdit}>
           {#each allowedTypes as t}
             <option value={t}>{EVENT_TYPES[t]?.label || t}</option>
           {/each}
         </select>
       </div>
 
-      <div class="field">
-        <label>العنوان *</label>
-        <input bind:value={title} required maxlength="200" placeholder="مثال: طلعة الأربعاء" />
+      <div class="u-field">
+        <label for="ef-title" class="u-field-label">العنوان *</label>
+        <input id="ef-title" class="u-input" bind:value={title} required maxlength="200" placeholder="مثال: طلعة الأربعاء" />
       </div>
 
-      <div class="field">
-        <label>التاريخ والوقت *</label>
-        <input type="datetime-local" bind:value={start_at} required />
+      <div class="u-field">
+        <label for="ef-start" class="u-field-label">التاريخ والوقت *</label>
+        <input id="ef-start" class="u-input" type="datetime-local" bind:value={start_at} required />
       </div>
 
-      <div class="field">
-        <label>وقت الانتهاء (اختياري)</label>
-        <input type="datetime-local" bind:value={end_at} />
+      <div class="u-field">
+        <label for="ef-end" class="u-field-label">وقت الانتهاء (اختياري)</label>
+        <input id="ef-end" class="u-input" type="datetime-local" bind:value={end_at} />
       </div>
 
-      <div class="field">
-        <label>الموقع</label>
-        <input bind:value={location_name} placeholder="مثال: استراحة الفيصلية" />
+      <div class="u-field">
+        <label for="ef-loc" class="u-field-label">الموقع</label>
+        <input id="ef-loc" class="u-input" bind:value={location_name} placeholder="مثال: استراحة الفيصلية" />
       </div>
 
-      <div class="field">
-        <label>رابط الخرائط (اختياري)</label>
-        <input bind:value={location_url} placeholder="https://maps.google.com/..." type="url" />
+      <div class="u-field">
+        <label for="ef-maps" class="u-field-label">رابط الخرائط (اختياري)</label>
+        <input id="ef-maps" class="u-input" bind:value={location_url} placeholder="https://maps.google.com/..." type="url" />
       </div>
 
-      <div class="field">
-        <label>ملاحظات</label>
-        <textarea bind:value={notes} rows="3" placeholder="تفاصيل إضافية…"></textarea>
+      <div class="u-field">
+        <label for="ef-notes" class="u-field-label">ملاحظات</label>
+        <textarea id="ef-notes" class="u-input u-textarea" bind:value={notes} rows="3" placeholder="تفاصيل إضافية…"></textarea>
       </div>
 
-      <div class="geofence-box">
-        <div class="gf-header">
-          <span>📍 موقع التحضير الذكي (Geofence)</span>
-          <button type="button" class="use-loc" onclick={useMyLocation} disabled={gettingLocation}>
+      <fieldset class="geofence-box">
+        <legend>📍 موقع التحضير الذكي</legend>
+        <div class="gf-actions">
+          <button type="button" class="u-btn u-btn-primary sm" onclick={useMyLocation} disabled={gettingLocation}>
             {gettingLocation ? 'جارٍ…' : 'استخدم موقعي الحالي'}
           </button>
+          {#if locMsg}<span class="gf-msg">{locMsg}</span>{/if}
         </div>
-        {#if locMsg}<div class="loc-msg">{locMsg}</div>{/if}
-        <div class="gf-row">
-          <div class="field compact">
-            <label>خط العرض</label>
-            <input type="number" step="any" bind:value={geofence_lat} placeholder="24.7136" />
-          </div>
-          <div class="field compact">
-            <label>خط الطول</label>
-            <input type="number" step="any" bind:value={geofence_lng} placeholder="46.6753" />
-          </div>
-          <div class="field compact">
-            <label>نصف القطر (م)</label>
-            <input type="number" min="20" max="2000" bind:value={geofence_radius} />
-          </div>
-        </div>
-        <p class="hint">عند حفظ الموقع، الأعضاء يستطيعون تحضير أنفسهم تلقائياً عند الوصول للنطاق.</p>
-      </div>
 
-      <div class="mf">
-        <button type="button" class="btn ghost" onclick={onclose}>إلغاء</button>
-        <button type="submit" class="btn" disabled={saving}>{saving ? 'جارٍ…' : (isEdit ? 'حفظ' : 'إضافة')}</button>
-      </div>
+        <div class="gf-grid">
+          <div class="u-field">
+            <label for="ef-lat" class="u-field-label">خط العرض</label>
+            <input id="ef-lat" class="u-input" type="number" step="any" bind:value={geofence_lat} placeholder="24.7136" />
+          </div>
+          <div class="u-field">
+            <label for="ef-lng" class="u-field-label">خط الطول</label>
+            <input id="ef-lng" class="u-input" type="number" step="any" bind:value={geofence_lng} placeholder="46.6753" />
+          </div>
+          <div class="u-field">
+            <label for="ef-rad" class="u-field-label">نصف القطر (م)</label>
+            <input id="ef-rad" class="u-input" type="number" min="20" max="2000" bind:value={geofence_radius} />
+          </div>
+        </div>
+        <p class="u-field-hint">عند حفظ الموقع، الأعضاء يستطيعون تحضير أنفسهم تلقائياً عند الوصول للنطاق.</p>
+      </fieldset>
     </form>
+
+    <div class="u-modal-footer">
+      <button type="button" class="u-btn u-btn-ghost" onclick={onclose}>إلغاء</button>
+      <button type="submit" class="u-btn u-btn-primary" disabled={saving} onclick={save}>
+        {saving ? 'جارٍ…' : (isEdit ? 'حفظ' : 'إضافة')}
+      </button>
+    </div>
   </div>
 </div>
 
 <style>
-  .overlay {
-    position: fixed; inset: 0;
-    background: rgba(14, 43, 34, .55);
-    backdrop-filter: blur(2px);
-    z-index: 100;
-    display: flex;
-    align-items: flex-end;
-    justify-content: center;
-    animation: fade .2s;
-  }
-  @keyframes fade { from { opacity: 0; } to { opacity: 1; } }
-  @media (min-width: 768px) {
-    .overlay { align-items: center; }
-    .modal { border-radius: 22px !important; max-height: 85vh !important; }
-  }
-  .modal {
-    background: var(--card);
-    border-radius: 24px 24px 0 0;
-    width: 100%;
-    max-width: 620px;
-    max-height: 92vh;
-    display: flex;
-    flex-direction: column;
-    animation: slide .25s cubic-bezier(.16, 1, .3, 1);
-    overflow: hidden;
-  }
-  @keyframes slide { from { transform: translateY(60px); opacity: 0; } to { transform: translateY(0); opacity: 1; } }
-
-  .mh {
-    padding: 16px 20px;
-    display: flex;
-    justify-content: space-between;
-    align-items: center;
-    color: #fff;
-    background: var(--brand);
-    font-weight: 600;
-    font-size: 14.5px;
-  }
-  .x {
-    background: rgba(255, 255, 255, .18);
-    border: none;
-    color: #fff;
-    width: 30px; height: 30px;
-    border-radius: 50%;
-    font-size: 13px;
-    cursor: pointer;
-  }
-
-  .mb {
-    padding: 20px;
-    overflow-y: auto;
-    flex: 1;
-  }
-
-  .field { margin-bottom: 14px; }
-  .field label {
-    display: block;
-    font-size: 12px;
-    font-weight: 600;
-    margin-bottom: 6px;
-    color: var(--brand);
-  }
-  .field input, .field select, .field textarea {
-    width: 100%;
-    padding: 12px 13px;
-    border: 1.5px solid var(--line);
-    border-radius: 12px;
-    font-family: inherit;
-    font-size: 16px;
-    background: var(--card);
-    color: var(--ink);
-    transition: border .15s, box-shadow .15s;
-  }
-  .field input:focus, .field select:focus, .field textarea:focus {
-    outline: none;
-    border-color: var(--brand);
-    box-shadow: 0 0 0 3px var(--brand-soft);
-  }
-  .field input:disabled, .field select:disabled { opacity: .6; }
-
-  .alert { padding: 10px 14px; border-radius: 10px; font-size: 12.5px; margin-bottom: 12px; font-weight: 500; }
-  .alert.err { background: var(--bad-soft); color: var(--bad); }
-
-  .mf {
-    padding-top: 10px;
-    border-top: 1px solid var(--line);
-    display: flex;
-    gap: 8px;
-    justify-content: flex-end;
-    position: sticky;
-    bottom: 0;
-    background: var(--card);
-  }
-  .btn {
-    padding: 11px 20px;
-    background: var(--brand);
-    color: #fff;
-    border: none;
-    border-radius: 11px;
-    font-family: inherit;
-    font-size: 13.5px;
-    font-weight: 600;
-    cursor: pointer;
-  }
-  .btn:disabled { opacity: .5; }
-  .btn.ghost { background: transparent; color: var(--brand); border: 1.5px solid var(--line); }
-
   .geofence-box {
     background: var(--gold-soft);
     border: 1px dashed var(--gold);
-    border-radius: 13px;
-    padding: 14px;
-    margin-bottom: 14px;
+    border-radius: var(--r-md);
+    padding: var(--sp-2);
+    margin-top: var(--sp-2);
   }
-  .gf-header {
+  .geofence-box > legend {
+    padding: 0 var(--sp-1);
+    font: var(--fw-bold) var(--fs-sm) var(--font-sans);
+    color: var(--brand);
+  }
+  .gf-actions {
     display: flex;
-    justify-content: space-between;
+    gap: var(--sp-1);
     align-items: center;
-    margin-bottom: 10px;
-    font-size: 13px;
-    font-weight: 700;
-    color: var(--brand);
     flex-wrap: wrap;
-    gap: 8px;
+    margin-bottom: var(--sp-2);
   }
-  .use-loc {
-    background: var(--brand);
-    color: #fff;
-    border: none;
-    border-radius: 8px;
-    padding: 6px 11px;
-    font-size: 11px;
-    font-weight: 600;
-    cursor: pointer;
-  }
-  .use-loc:disabled { opacity: .5; }
-  .loc-msg {
-    padding: 6px 10px;
+  .gf-msg {
+    padding: 4px 10px;
     background: var(--card);
-    border-radius: 8px;
-    font-size: 11.5px;
+    border-radius: var(--r-sm);
+    font-size: var(--fs-tiny);
     color: var(--brand);
-    margin-bottom: 10px;
   }
-  .gf-row {
+  .gf-grid {
     display: grid;
     grid-template-columns: 1fr 1fr;
-    gap: 8px;
+    gap: var(--sp-1);
   }
-  @media (min-width: 480px) { .gf-row { grid-template-columns: 1fr 1fr 1fr; } }
-  .gf-row .field { margin-bottom: 0; }
-  .field.compact label { font-size: 11px; }
-  .field.compact input { padding: 9px 11px; font-size: 14px; }
-  .hint { font-size: 11px; color: var(--ink3); margin-top: 8px; }
+  @media (min-width: 480px) {
+    .gf-grid { grid-template-columns: 1fr 1fr 1fr; }
+  }
+  .gf-grid .u-field { margin-bottom: 0; }
 </style>

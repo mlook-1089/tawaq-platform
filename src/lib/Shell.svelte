@@ -1,5 +1,5 @@
 <script lang="ts">
-  import { route, profile } from './stores';
+  import { route } from './stores';
   import Home from './pages/Home.svelte';
   import Events from './pages/Events.svelte';
   import Hosting from './pages/Hosting.svelte';
@@ -9,9 +9,9 @@
   import BottomNav from './components/BottomNav.svelte';
 </script>
 
-<div class="shell">
+<div class="u-shell">
   <TopBar />
-  <main class="content">
+  <main class="u-page">
     {#if $route === 'home'}
       <Home />
     {:else if $route === 'events'}
@@ -26,20 +26,3 @@
   </main>
   <BottomNav />
 </div>
-
-<style>
-  .shell {
-    min-height: 100vh;
-    display: flex;
-    flex-direction: column;
-    background: var(--bg);
-    max-width: 760px;
-    margin: 0 auto;
-    width: 100%;
-    position: relative;
-  }
-  .content {
-    flex: 1;
-    padding: 14px 18px calc(80px + env(safe-area-inset-bottom));
-  }
-</style>

@@ -20,36 +20,15 @@
   });
 </script>
 
-<main>
-  {#if loading}
-    <div class="loading">
-      <div class="spinner"></div>
-      <p>جارٍ التحميل…</p>
-    </div>
-  {:else if $session}
-    <Shell />
-  {:else}
-    <Login />
-  {/if}
-</main>
-
-<style>
-  main { min-height: 100vh; display: flex; flex-direction: column; }
-  .loading {
-    flex: 1;
-    display: flex;
-    flex-direction: column;
-    align-items: center;
-    justify-content: center;
-    gap: 14px;
-    color: var(--ink3);
-  }
-  .spinner {
-    width: 38px; height: 38px;
-    border: 3px solid var(--gold-soft);
-    border-top-color: var(--brand);
-    border-radius: 50%;
-    animation: spin .7s linear infinite;
-  }
-  @keyframes spin { to { transform: rotate(360deg); } }
-</style>
+{#if loading}
+  <div class="app-boot">
+    <span class="u-spinner lg">
+      <svg viewBox="0 0 24 24"><circle cx="12" cy="12" r="10"/></svg>
+    </span>
+    <p>جارٍ التحميل…</p>
+  </div>
+{:else if $session}
+  <Shell />
+{:else}
+  <Login />
+{/if}

@@ -27,120 +27,74 @@
 
 <PageHead icon="👤" title="حسابي" />
 
-<div class="profile-card">
-  <div class="avatar">{initials($profile?.full_name || 'ع')}</div>
-  <div class="name">{$profile?.full_name || 'عضو جديد'}</div>
-  <div class="email">{$session?.user?.email}</div>
-  <div class="roles">
+<article class="u-hero profile-hero">
+  <div class="avatar-wrap">
+    <div class="u-avatar circle xl u-avatar-brand">{initials($profile?.full_name || 'ع')}</div>
+  </div>
+  <h2>{$profile?.full_name || 'عضو جديد'}</h2>
+  <p>{$session?.user?.email}</p>
+  <div class="roles-row">
     {#each $roles as r (r)}
-      <span class="role">{roleLabels[r] || r}</span>
+      <span class="u-role-badge {r === 'super_admin' ? 'admin' : 'member'}">{roleLabels[r] || r}</span>
     {/each}
     {#if $roles.length === 0}
-      <span class="role">{roleLabels.member}</span>
+      <span class="u-role-badge member">{roleLabels.member}</span>
     {/if}
   </div>
-</div>
+</article>
 
-<div class="info-card">
-  <h3>📋 المعلومات</h3>
-  <div class="row"><span>اسم المستخدم</span><b>{$profile?.username || '—'}</b></div>
-  <div class="row"><span>الجوال</span><b>{$profile?.phone || '—'}</b></div>
-  <div class="row"><span>البريد</span><b>{$session?.user?.email}</b></div>
-  <div class="row"><span>تاريخ الانضمام</span><b>{$profile?.joined_at ? new Date($profile.joined_at).toLocaleDateString('ar-SA') : '—'}</b></div>
-</div>
+<section class="u-card info-card">
+  <div class="u-card-h">📋 المعلومات</div>
+  <ul class="info-list">
+    <li><span>اسم المستخدم</span><b>{$profile?.username || '—'}</b></li>
+    <li><span>الجوال</span><b>{$profile?.phone || '—'}</b></li>
+    <li><span>البريد</span><b>{$session?.user?.email}</b></li>
+    <li><span>تاريخ الانضمام</span><b>{$profile?.joined_at ? new Date($profile.joined_at).toLocaleDateString('ar-SA') : '—'}</b></li>
+  </ul>
+</section>
 
-<button class="logout" onclick={logout}>تسجيل الخروج</button>
+<button class="u-btn u-btn-danger block logout-btn" onclick={logout}>تسجيل الخروج</button>
 
 <style>
-  .profile-card {
-    background: linear-gradient(155deg, var(--brand) 0%, #1A4536 100%);
-    color: var(--on-brand);
-    border-radius: 20px;
-    padding: 28px 20px;
+  .profile-hero {
     text-align: center;
-    box-shadow: var(--shadow-lg);
-    margin-bottom: 14px;
-    position: relative;
-    overflow: hidden;
+    padding: var(--sp-5) var(--sp-3);
+    margin-bottom: var(--sp-2);
   }
-  .profile-card::before {
-    content: '';
-    position: absolute;
-    top: -40px; left: -40px;
-    width: 160px; height: 160px;
-    background: var(--gold);
-    opacity: .1;
-    clip-path: polygon(25% 5%, 75% 5%, 100% 50%, 75% 95%, 25% 95%, 0 50%);
-  }
-  .avatar {
-    width: 72px; height: 72px;
-    border-radius: 50%;
-    background: var(--gold);
-    color: var(--brand);
-    font-weight: 700;
-    font-size: 24px;
-    display: flex;
-    align-items: center;
-    justify-content: center;
-    margin: 0 auto 14px;
-    border: 3px solid rgba(255, 255, 255, 0.2);
+  .avatar-wrap {
+    margin-bottom: var(--sp-2);
     position: relative;
   }
-  .name { font-size: 18px; font-weight: 700; margin-bottom: 4px; position: relative; }
-  .email { color: var(--gold-bright); font-size: 12.5px; margin-bottom: 14px; position: relative; }
-  .roles {
+  .profile-hero :global(.u-avatar) {
+    border: 3px solid rgba(255,255,255,0.2);
+  }
+
+  .roles-row {
     display: flex;
-    gap: 6px;
+    gap: var(--sp-05);
     justify-content: center;
     flex-wrap: wrap;
+    margin-top: var(--sp-2);
     position: relative;
   }
-  .role {
-    background: rgba(255, 255, 255, 0.14);
-    color: #fff;
-    padding: 5px 12px;
-    border-radius: 999px;
-    font-size: 11.5px;
-    font-weight: 600;
-  }
 
-  .info-card {
-    background: var(--card);
-    border: 1px solid var(--line);
-    border-radius: 18px;
-    padding: 18px;
-    box-shadow: var(--shadow);
-    margin-bottom: 14px;
+  .info-card { margin-bottom: var(--sp-2); }
+  .info-list {
+    list-style: none;
+    padding: 0;
+    margin: 0;
   }
-  .info-card h3 {
-    color: var(--brand);
-    font-size: 14px;
-    margin-bottom: 12px;
-  }
-  .row {
+  .info-list li {
     display: flex;
     justify-content: space-between;
-    padding: 10px 0;
+    padding: var(--sp-1) 0;
     border-bottom: 1px dashed var(--line);
-    font-size: 13px;
+    font-size: var(--fs-sm);
   }
-  .row:last-child { border-bottom: none; }
-  .row span { color: var(--ink3); }
-  .row b { color: var(--ink); font-weight: 600; }
+  .info-list li:last-child { border-bottom: none; }
+  .info-list li span { color: var(--ink3); }
+  .info-list li b { color: var(--ink); font-weight: var(--fw-semi); }
 
-  .logout {
-    display: block;
-    width: 100%;
-    padding: 13px;
-    background: var(--bad);
-    color: #fff;
-    border: none;
-    border-radius: 12px;
-    font-family: inherit;
-    font-size: 13.5px;
-    font-weight: 600;
-    cursor: pointer;
-    margin-top: 6px;
-  }
-  .logout:hover { filter: brightness(1.1); }
+  .logout-btn { margin-top: var(--sp-2); }
+  .block { width: 100%; }
 </style>

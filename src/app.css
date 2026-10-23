@@ -1,20 +1,27 @@
-@import url('https://fonts.googleapis.com/css2?family=IBM+Plex+Sans+Arabic:wght@400;500;600;700&family=Tajawal:wght@400;500;700;800&display=swap');
+/* الحد الأدنى من قواعد التطبيق — الباقي في tokens.css و ui.css */
 
-* { box-sizing: border-box; margin: 0; padding: 0; }
-
-html, body {
-  font-family: 'IBM Plex Sans Arabic', 'Tajawal', system-ui, sans-serif;
-  background: var(--bg);
-  color: var(--ink);
+#app {
   min-height: 100vh;
-  -webkit-font-smoothing: antialiased;
-  font-size: 15px;
+  min-height: 100dvh;
+  display: flex;
+  flex-direction: column;
 }
 
-#app { min-height: 100vh; display: flex; flex-direction: column; }
-
 a { color: var(--brand-ink); text-decoration: none; }
+a:hover { text-decoration: underline; }
 
 button { font-family: inherit; cursor: pointer; }
+input, select, textarea { font-family: inherit; }
 
-input { font-family: inherit; }
+/* Loader for app boot */
+.app-boot {
+  flex: 1;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  gap: var(--sp-2);
+  color: var(--ink3);
+  min-height: 100vh;
+  min-height: 100dvh;
+}

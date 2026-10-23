@@ -71,7 +71,6 @@
           return;
         }
 
-        // Insert attendance
         const payload: any = {
           event_id: e.id,
           user_id: $session!.user!.id,
@@ -104,6 +103,9 @@
   const statusLabels: Record<string, string> = {
     present: 'حاضر', late: 'متأخر', excused: 'معذور', absent: 'غائب'
   };
+  const statusPill: Record<string, string> = {
+    present: 'ok', late: 'warn', excused: 'info', absent: 'bad'
+  };
   const methodLabels: Record<string, string> = {
     manual: 'يدوي', self_qr: 'QR', self_geo: 'موقع', self_pin: 'رمز'
   };
@@ -112,8 +114,8 @@
     const now = Date.now();
     const start = new Date(e.start_datetime).getTime();
     const end = e.end_datetime ? new Date(e.end_datetime).getTime() : start + 3 * 3600 * 1000;
-    const windowStart = start - 15 * 60 * 1000;  // 15 min before
-    const windowEnd = end + 30 * 60 * 1000;      // 30 min after
+    const windowStart = start - 15 * 60 * 1000;
+    const windowEnd = end + 30 * 60 * 1000;
     return now >= windowStart && now <= windowEnd;
   }
 </script>
@@ -121,73 +123,82 @@
 <PageHead icon="✓" title="التحضير الذكي" />
 
 {#if loading}
-  <div class="skel"></div>
-  <div class="skel"></div>
+  <div class="u-stack">
+    <div class="u-skel u-skel-card"></div>
+    <div class="u-skel u-skel-card"></div>
+  </div>
 {:else if events.length === 0}
-  <div class="empty">
+  <div class="u-empty">
     <div class="ic">📅</div>
     <h3>لا توجد فعاليات هذا الأسبوع</h3>
     <p>سيظهر التحضير هنا عند اقتراب موعد أي فعالية.</p>
   </div>
 {:else}
-  <div class="info-strip">
+  <div class="u-alert">
     💡 اضغط <b>"تحضير بالموقع"</b> عند الوصول للفعالية — النظام يتحقق من موقعك ويُسجّلك تلقائياً.
   </div>
 
-  {#each events as e (e.id)}
-    {@const att = myAttendance[e.id]}
-    {@const current = isCurrent(e)}
-    {@const hasGeo = !!(e.geofence_lat && e.geofence_lng)}
-    <div class="card" class:current>
-      <div class="head" style="--acc: {e.color_tag || EVENT_TYPES[e.type]?.color}">
-        <div class="date-badge">
-          <span class="day">{fmtDate(e.start_datetime).split(' ')[0]}</span>
-          <span class="time">{fmtTime(e.start_datetime)}</span>
-        </div>
-        <div class="t">
-          <div class="title">{e.title}</div>
-          <div class="sub">
-            <span class="type-badge" style="background: {e.color_tag || EVENT_TYPES[e.type]?.color}">{EVENT_TYPES[e.type]?.label || e.type}</span>
-            {#if e.location_name}<span class="loc">📍 {e.location_name}</span>{/if}
+  <div class="u-stack">
+    {#each events as e (e.id)}
+      {@const att = myAttendance[e.id]}
+      {@const current = isCurrent(e)}
+      {@const hasGeo = !!(e.geofence_lat && e.geofence_lng)}
+      <article class="u-card att-card" class:current>
+        <header class="att-head">
+          <div class="date-badge" style="background: {e.color_tag || EVENT_TYPES[e.type]?.color}">
+            <span class="d">{fmtDate(e.start_datetime).split(' ')[0]}</span>
+            <span class="t">{fmtTime(e.start_datetime)}</span>
           </div>
-        </div>
-        {#if current}<div class="live-badge"><span class="dot"></span>الآن</div>{/if}
-      </div>
-
-      {#if att}
-        <div class="status-row">
-          <div class="status-badge status-{att.status}">
-            {att.status === 'present' ? '✓' : att.status === 'late' ? '⏰' : att.status === 'excused' ? '✎' : '✗'}
-            {statusLabels[att.status]}
+          <div class="info">
+            <div class="title">{e.title}</div>
+            <div class="meta">
+              <span class="u-pill" style="background: {e.color_tag || EVENT_TYPES[e.type]?.color}; color: var(--on-brand)">
+                {EVENT_TYPES[e.type]?.label || e.type}
+              </span>
+              {#if e.location_name}<span class="u-muted">📍 {e.location_name}</span>{/if}
+            </div>
           </div>
-          <div class="method">
-            عبر {methodLabels[att.method] || att.method}
-            {#if att.distance_from_event_m != null} · {Math.round(att.distance_from_event_m)}م{/if}
+          {#if current}
+            <span class="u-pill solid live">
+              <span class="dot"></span>الآن
+            </span>
+          {/if}
+        </header>
+
+        {#if att}
+          <div class="status-row">
+            <span class="u-pill {statusPill[att.status]}">
+              {statusLabels[att.status]}
+            </span>
+            <span class="u-muted">
+              عبر {methodLabels[att.method] || att.method}
+              {#if att.distance_from_event_m != null} · {Math.round(att.distance_from_event_m)}م{/if}
+            </span>
           </div>
-        </div>
-      {:else if current && hasGeo}
-        <button class="check-btn" disabled={busyEvent === e.id} onclick={() => selfCheckIn(e)}>
-          {busyEvent === e.id ? 'جارٍ تحديد موقعك…' : '📍 تحضير بالموقع'}
-        </button>
-      {:else if current && !hasGeo}
-        <div class="warn">⚠️ لم يُحدِّد المسؤول موقعاً للتحضير الذاتي بعد.</div>
-      {:else}
-        <div class="muted-row">
-          {hasGeo ? '📍 موقع التحضير جاهز — سيُفعَّل عند بدء الفعالية' : '⏳ لم يحن وقت التحضير'}
-        </div>
-      {/if}
+        {:else if current && hasGeo}
+          <button class="u-btn u-btn-primary lg block check-btn" disabled={busyEvent === e.id} onclick={() => selfCheckIn(e)}>
+            {busyEvent === e.id ? 'جارٍ تحديد موقعك…' : '📍 تحضير بالموقع'}
+          </button>
+        {:else if current && !hasGeo}
+          <div class="u-alert warn">⚠️ لم يُحدِّد المسؤول موقعاً للتحضير الذاتي بعد.</div>
+        {:else}
+          <div class="status-muted">
+            {hasGeo ? '📍 موقع التحضير جاهز — سيُفعَّل عند بدء الفعالية' : '⏳ لم يحن وقت التحضير'}
+          </div>
+        {/if}
 
-      {#if msg && msg.eventId === e.id}
-        <div class="msg {msg.ok ? 'ok' : 'err'}">{msg.text}</div>
-      {/if}
+        {#if msg && msg.eventId === e.id}
+          <div class="u-alert {msg.ok ? 'ok' : 'err'}">{msg.text}</div>
+        {/if}
 
-      {#if $isAdmin}
-        <button class="admin-btn" onclick={() => manageEventId = e.id}>
-          إدارة الحضور (مسؤول)
-        </button>
-      {/if}
-    </div>
-  {/each}
+        {#if $isAdmin}
+          <button class="u-btn u-btn-ghost sm block admin-btn" onclick={() => manageEventId = e.id}>
+            إدارة الحضور (مسؤول)
+          </button>
+        {/if}
+      </article>
+    {/each}
+  </div>
 {/if}
 
 {#if manageEventId}
@@ -195,166 +206,76 @@
 {/if}
 
 <style>
-  .info-strip {
-    background: var(--brand-soft);
-    border: 1px solid var(--brand);
-    border-right-width: 4px;
-    border-radius: 12px;
-    padding: 12px 14px;
-    font-size: 12.5px;
-    color: var(--brand);
-    margin-bottom: 14px;
-    line-height: 1.6;
-  }
-
-  .card {
-    background: var(--card);
-    border: 1px solid var(--line);
-    border-radius: 16px;
-    padding: 14px;
-    margin-bottom: 12px;
-    box-shadow: var(--shadow);
-    position: relative;
-    overflow: hidden;
-  }
-  .card.current {
+  .att-card { position: relative; }
+  .att-card.current {
     border-color: var(--ok);
-    box-shadow: 0 0 0 3px var(--ok-soft);
+    box-shadow: 0 0 0 2px var(--ok-soft), var(--shadow);
   }
 
-  .head { display: flex; gap: 12px; align-items: center; margin-bottom: 10px; }
+  .att-head {
+    display: flex;
+    gap: var(--sp-1);
+    align-items: center;
+    margin-bottom: var(--sp-2);
+  }
 
   .date-badge {
-    background: var(--acc, var(--brand));
-    color: #fff;
-    border-radius: 11px;
-    padding: 8px 10px;
+    color: var(--on-brand);
+    border-radius: var(--r-sm);
+    padding: var(--sp-1) var(--sp-2);
     text-align: center;
-    min-width: 70px;
+    min-width: 72px;
     flex-shrink: 0;
   }
-  .date-badge .day { display: block; font-size: 10.5px; font-weight: 600; opacity: .9; }
-  .date-badge .time { display: block; font-size: 15px; font-weight: 700; font-variant-numeric: tabular-nums; margin-top: 2px; }
-
-  .t { flex: 1; min-width: 0; }
-  .title { font-weight: 700; font-size: 14.5px; color: var(--ink); margin-bottom: 5px; }
-  .sub { display: flex; gap: 7px; align-items: center; flex-wrap: wrap; font-size: 11px; color: var(--ink3); }
-  .type-badge {
-    display: inline-block;
-    padding: 3px 9px;
-    border-radius: 99px;
-    color: #fff;
-    font-size: 10px;
-    font-weight: 600;
+  .date-badge .d {
+    display: block;
+    font: var(--fw-semi) var(--fs-tiny) var(--font-sans);
+    opacity: 0.9;
   }
-  .loc { color: var(--ink3); }
+  .date-badge .t {
+    display: block;
+    font: var(--fw-bold) var(--fs-md) var(--font-num);
+    font-variant-numeric: tabular-nums;
+    margin-top: 2px;
+  }
 
-  .live-badge {
+  .info { flex: 1; min-width: 0; }
+  .title { font: var(--fw-bold) var(--fs-base) var(--font-sans); color: var(--ink); margin-bottom: 4px; }
+  .meta { display: flex; gap: var(--sp-1); align-items: center; flex-wrap: wrap; font-size: var(--fs-tiny); }
+
+  .live {
     background: var(--ok);
     color: #fff;
-    padding: 4px 10px;
-    border-radius: 99px;
-    font-size: 10.5px;
-    font-weight: 700;
-    display: flex;
-    align-items: center;
     gap: 5px;
     flex-shrink: 0;
   }
   .dot {
     width: 7px; height: 7px; border-radius: 50%;
     background: #fff;
-    animation: pulse 1.5s ease-in-out infinite;
+    animation: live-pulse 1.5s ease-in-out infinite;
   }
-  @keyframes pulse { 0%,100% { opacity: 1; } 50% { opacity: .4; } }
+  @keyframes live-pulse { 0%,100% { opacity: 1; } 50% { opacity: 0.4; } }
 
   .status-row {
     display: flex;
     justify-content: space-between;
     align-items: center;
-    padding: 10px 12px;
+    padding: var(--sp-1) var(--sp-2);
     background: var(--bg);
-    border-radius: 11px;
-    margin-top: 6px;
+    border-radius: var(--r-sm);
+    margin-top: var(--sp-1);
   }
-  .status-badge {
-    font-weight: 700;
-    font-size: 12.5px;
-    padding: 5px 12px;
-    border-radius: 99px;
-  }
-  .status-present { background: var(--ok-soft); color: var(--ok); }
-  .status-late { background: var(--warn-soft); color: var(--warn); }
-  .status-excused { background: var(--info-soft); color: var(--info); }
-  .status-absent { background: var(--bad-soft); color: var(--bad); }
-  .method { font-size: 11px; color: var(--ink3); }
 
-  .check-btn {
-    display: block;
-    width: 100%;
-    padding: 14px;
-    background: var(--brand);
-    color: var(--on-brand);
-    border: none;
-    border-radius: 12px;
-    font-family: inherit;
-    font-size: 14px;
-    font-weight: 700;
-    cursor: pointer;
-    margin-top: 6px;
-    transition: filter .15s, transform .1s;
-  }
-  .check-btn:hover:not(:disabled) { filter: brightness(1.1); }
-  .check-btn:active:not(:disabled) { transform: scale(.98); }
-  .check-btn:disabled { opacity: .6; cursor: wait; }
-
-  .warn {
-    padding: 10px 12px;
-    background: var(--warn-soft);
-    color: var(--warn);
-    border-radius: 11px;
-    font-size: 12px;
-    text-align: center;
-    font-weight: 600;
-  }
-  .muted-row {
-    padding: 10px 12px;
+  .check-btn { margin-top: var(--sp-05); }
+  .status-muted {
+    padding: var(--sp-1) var(--sp-2);
     background: var(--bg);
     color: var(--ink3);
-    border-radius: 11px;
-    font-size: 11.5px;
+    border-radius: var(--r-sm);
+    font-size: var(--fs-xs);
     text-align: center;
   }
 
-  .msg {
-    margin-top: 8px;
-    padding: 10px 12px;
-    border-radius: 11px;
-    font-size: 12.5px;
-    font-weight: 500;
-    text-align: center;
-  }
-  .msg.ok { background: var(--ok-soft); color: var(--ok); }
-  .msg.err { background: var(--bad-soft); color: var(--bad); }
-
-  .admin-btn {
-    margin-top: 8px;
-    display: block;
-    width: 100%;
-    padding: 9px;
-    background: var(--gold-soft);
-    color: var(--brand);
-    border: 1px solid var(--gold);
-    border-radius: 10px;
-    font-size: 11.5px;
-    font-weight: 600;
-    cursor: pointer;
-  }
-
-  .empty { text-align: center; padding: 40px 16px; color: var(--ink3); background: var(--card); border-radius: 18px; border: 1px solid var(--line); }
-  .empty .ic { font-size: 42px; opacity: .4; margin-bottom: 10px; }
-  .empty h3 { color: var(--ink2); margin-bottom: 5px; font-size: 15px; }
-
-  .skel { height: 130px; background: var(--muted-bg); border-radius: 16px; margin-bottom: 12px; animation: skelpulse 1.4s ease-in-out infinite; }
-  @keyframes skelpulse { 0%,100% { opacity: 1; } 50% { opacity: .5; } }
+  .admin-btn { margin-top: var(--sp-1); }
+  .block { width: 100%; }
 </style>
