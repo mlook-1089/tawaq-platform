@@ -114,84 +114,83 @@
 </script>
 
 <HostingModal {title} busy={saving} {onclose}>
-  <form class="mb" onsubmit={save} aria-busy={loading || saving}>
-    {#if error}<div class="alert err" role="alert">{error}</div>{/if}
+  <form class="u-modal-body" onsubmit={save} aria-busy={loading || saving}>
+    {#if error}<div class="u-alert err" role="alert">{error}</div>{/if}
+
     {#if loading}
-      <div class="skel" role="status" aria-label="جارٍ تحميل الخيارات"></div><div class="skel"></div>
+      <div class="u-skel u-skel-card" role="status" aria-label="جارٍ تحميل الخيارات"></div>
+      <div class="u-skel u-skel-card"></div>
     {:else if mode === 'swap'}
-      <p class="notes">{assignment?.event.title} · {fmtDate(assignment?.event.start_datetime)}</p>
-      <div class="field">
-        <label for="swap-member">العضو البديل *</label>
-        <select id="swap-member" bind:value={replacement} required disabled={saving}>
+      <p class="u-muted ctx">{assignment?.event.title} · {fmtDate(assignment?.event.start_datetime)}</p>
+
+      <div class="u-field">
+        <label for="swap-member" class="u-field-label">العضو البديل *</label>
+        <select id="swap-member" class="u-input u-select" bind:value={replacement} required disabled={saving}>
           <option value="">اختر عضوًا</option>
           {#each replacements as member (member.id)}<option value={member.id}>{member.full_name}</option>{/each}
         </select>
       </div>
-      {#if !replacements.length}<div class="empty">لا يوجد أعضاء متاحون للتبديل.</div>{/if}
-      <div class="field">
-        <label for="swap-reason">سبب التبديل *</label>
-        <textarea id="swap-reason" bind:value={reason} required maxlength="500" rows="3" disabled={saving} placeholder="اكتب سبب طلبك…"></textarea>
+      {#if !replacements.length}<div class="u-alert warn">لا يوجد أعضاء متاحون للتبديل.</div>{/if}
+
+      <div class="u-field">
+        <label for="swap-reason" class="u-field-label">سبب التبديل *</label>
+        <textarea id="swap-reason" class="u-input u-textarea" bind:value={reason} required maxlength="500" rows="3" disabled={saving} placeholder="اكتب سبب طلبك…"></textarea>
       </div>
     {:else}
-      <div class="field">
-        <label for="hosting-event">الطلعة الأسبوعية *</label>
-        <select id="hosting-event" bind:value={eventId} required disabled={saving || isEdit}>
+      <div class="u-field">
+        <label for="hosting-event" class="u-field-label">الطلعة الأسبوعية *</label>
+        <select id="hosting-event" class="u-input u-select" bind:value={eventId} required disabled={saving || isEdit}>
           <option value="">اختر طلعة</option>
           {#each events as event (event.id)}<option value={event.id}>{fmtDate(event.start_datetime)} · {event.title}</option>{/each}
         </select>
-        <p class="notes">تظهر الطلعات القادمة التي لم تُربط بتكليف سابق.</p>
+        <p class="u-field-hint">تظهر الطلعات القادمة التي لم تُربط بتكليف سابق.</p>
       </div>
-      {#if !events.length}<div class="empty">لا توجد طلعات أسبوعية متاحة للربط.</div>{/if}
-      <div class="field">
-        <label for="hosting-a">المعزّب الأول *</label>
-        <select id="hosting-a" bind:value={hostA} required disabled={saving}>
+      {#if !events.length}<div class="u-alert warn">لا توجد طلعات أسبوعية متاحة للربط.</div>{/if}
+
+      <div class="u-field">
+        <label for="hosting-a" class="u-field-label">المعزّب الأول *</label>
+        <select id="hosting-a" class="u-input u-select" bind:value={hostA} required disabled={saving}>
           <option value="">اختر المعزّب الأول</option>
           {#each members as member (member.id)}<option value={member.id} disabled={member.id === hostB}>{member.full_name}</option>{/each}
         </select>
       </div>
-      <div class="field">
-        <label for="hosting-b">المعزّب الثاني *</label>
-        <select id="hosting-b" bind:value={hostB} required disabled={saving}>
+
+      <div class="u-field">
+        <label for="hosting-b" class="u-field-label">المعزّب الثاني *</label>
+        <select id="hosting-b" class="u-input u-select" bind:value={hostB} required disabled={saving}>
           <option value="">اختر المعزّب الثاني</option>
           {#each members as member (member.id)}<option value={member.id} disabled={member.id === hostA}>{member.full_name}</option>{/each}
         </select>
       </div>
-      <div class="field">
-        <label for="hosting-items">عناصر الضيافة</label>
-        <textarea id="hosting-items" bind:value={items} rows="3" disabled={saving} placeholder="قهوة&#10;تمر&#10;عشاء"></textarea>
-        <p class="notes">كل عنصر في سطر، أو افصل العناصر بفاصلة.</p>
+
+      <div class="u-field">
+        <label for="hosting-items" class="u-field-label">عناصر الضيافة</label>
+        <textarea id="hosting-items" class="u-input u-textarea" bind:value={items} rows="3" disabled={saving} placeholder="قهوة&#10;تمر&#10;عشاء"></textarea>
+        <p class="u-field-hint">كل عنصر في سطر، أو افصل العناصر بفاصلة.</p>
       </div>
-      <div class="field">
-        <label for="hosting-count">العدد المتوقع *</label>
-        <input id="hosting-count" type="number" bind:value={expectedCount} min="0" max="500" step="1" required disabled={saving} inputmode="numeric" />
+
+      <div class="u-field">
+        <label for="hosting-count" class="u-field-label">العدد المتوقع *</label>
+        <input id="hosting-count" class="u-input" type="number" bind:value={expectedCount} min="0" max="500" step="1" required disabled={saving} inputmode="numeric" />
       </div>
     {/if}
-    <div class="mf">
-      <button type="button" class="btn ghost" disabled={saving} onclick={onclose}>إلغاء</button>
-      {#if error}<button type="button" class="btn ghost" disabled={loading || saving} onclick={load}>تحديث الخيارات</button>{/if}
-      <button type="submit" class="btn" disabled={saving || loading || (mode === 'swap' ? !replacements.length : !events.length)}>
-        {saving ? 'جارٍ الحفظ…' : mode === 'swap' ? 'إرسال الطلب' : isEdit ? 'حفظ' : 'إضافة'}
-      </button>
-    </div>
   </form>
+
+  <div class="u-modal-footer">
+    <button type="button" class="u-btn u-btn-ghost" disabled={saving} onclick={onclose}>إلغاء</button>
+    {#if error}<button type="button" class="u-btn u-btn-ghost" disabled={loading || saving} onclick={load}>تحديث الخيارات</button>{/if}
+    <button type="submit" class="u-btn u-btn-primary" disabled={saving || loading || (mode === 'swap' ? !replacements.length : !events.length)} onclick={save}>
+      {saving ? 'جارٍ الحفظ…' : mode === 'swap' ? 'إرسال الطلب' : isEdit ? 'حفظ' : 'إضافة'}
+    </button>
+  </div>
 </HostingModal>
 
 <style>
-  .mb { padding: 20px; overflow-y: auto; min-height: 0; flex: 1; }
-  .field { margin-bottom: 14px; }
-  .field label { display: block; font-size: 12px; font-weight: 600; margin-bottom: 6px; color: var(--brand-ink); }
-  .field input, .field select, .field textarea { width: 100%; min-height: var(--touch); padding: 12px 13px; border: 1.5px solid var(--line); border-radius: 12px; font-family: inherit; font-size: 16px; background: var(--card); color: var(--ink); }
-  .field textarea { resize: vertical; }
-  .field input:focus, .field select:focus, .field textarea:focus { outline: none; border-color: var(--brand); box-shadow: var(--shadow-focus); }
-  .notes { font-size: 12px; color: var(--ink2); margin: 6px 0 12px; overflow-wrap: anywhere; }
-  .alert { padding: 10px 14px; border-radius: 10px; font-size: 12.5px; margin-bottom: 12px; font-weight: 500; overflow-wrap: anywhere; }
-  .alert.err { background: var(--bad-soft); color: var(--bad); }
-  .empty { text-align: center; padding: 20px 12px; color: var(--ink3); background: var(--card); border-radius: 18px; border: 1px solid var(--line); margin-bottom: 14px; }
-  .mf { padding-top: 10px; padding-bottom: env(safe-area-inset-bottom); border-top: 1px solid var(--line); display: flex; flex-wrap: wrap; gap: 8px; justify-content: flex-end; position: sticky; bottom: -20px; background: var(--card); }
-  .btn { min-height: var(--touch); padding: 11px 16px; background: var(--brand); color: var(--on-brand); border: 1.5px solid var(--brand); border-radius: 11px; font-family: inherit; font-size: 13.5px; font-weight: 600; cursor: pointer; }
-  .btn.ghost { background: var(--card); color: var(--brand-ink); border-color: var(--line); }
-  button:disabled, input:disabled, select:disabled, textarea:disabled { opacity: .6; cursor: not-allowed; }
-  button:focus-visible { outline: 2px solid var(--gold); outline-offset: 2px; }
-  .skel { height: 70px; background: var(--muted-bg); border-radius: 13px; margin-bottom: 9px; animation: pulse 1.4s ease-in-out infinite; }
-  @keyframes pulse { 0%, 100% { opacity: 1; } 50% { opacity: .5; } }
+  .ctx {
+    padding: var(--sp-1) var(--sp-2);
+    background: var(--brand-softer);
+    border-radius: var(--r-sm);
+    margin-bottom: var(--sp-2);
+    font-size: var(--fs-sm);
+  }
 </style>
