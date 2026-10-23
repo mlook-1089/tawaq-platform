@@ -13,16 +13,16 @@
   onMount(async () => {
     const { data } = await supabase
       .from('events')
-      .select('id,type,title,start_at,end_at,location_name,color_tag')
+      .select('id,type,title,start_datetime,end_datetime,location_name,color_tag')
       .is('deleted_at', null)
-      .gte('start_at', new Date().toISOString())
-      .order('start_at', { ascending: true })
+      .gte('start_datetime', new Date().toISOString())
+      .order('start_datetime', { ascending: true })
       .limit(1);
     nextEvent = data?.[0] || null;
     loading = false;
 
     if (nextEvent) {
-      const target = new Date(nextEvent.start_at).getTime();
+      const target = new Date(nextEvent.start_datetime).getTime();
       const tick = () => {
         const diff = Math.max(0, target - Date.now());
         countdown = {
@@ -51,7 +51,7 @@
     <div class="sec-t">الفعالية القادمة</div>
     <h2>{nextEvent.title}</h2>
     <p class="sub">
-      {fmtDT(nextEvent.start_at)}
+      {fmtDT(nextEvent.start_datetime)}
       {#if nextEvent.location_name} · 📍 {nextEvent.location_name}{/if}
     </p>
     <div class="cd">

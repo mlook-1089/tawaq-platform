@@ -21,8 +21,8 @@
       .from('events')
       .select('*')
       .is('deleted_at', null)
-      .gte('start_at', new Date().toISOString())
-      .order('start_at', { ascending: true });
+      .gte('start_datetime', new Date().toISOString())
+      .order('start_datetime', { ascending: true });
     if (err) { error = err.message; } else { events = data || []; }
     loading = false;
   }
@@ -36,7 +36,7 @@
   const groupedByDay = $derived.by(() => {
     const g: Record<string, any[]> = {};
     for (const e of filtered) {
-      const k = new Date(e.start_at).toISOString().slice(0, 10);
+      const k = new Date(e.start_datetime).toISOString().slice(0, 10);
       (g[k] = g[k] || []).push(e);
     }
     return Object.entries(g).sort(([a], [b]) => a.localeCompare(b));
@@ -80,7 +80,7 @@
     <div class="day-h">{fmtDate(day)}</div>
     {#each dayEvents as e (e.id)}
       <div class="ev" style="border-right: 4px solid {e.color_tag || EVENT_TYPES[e.type]?.color}">
-        <div class="tm">{fmtTime(e.start_at)}</div>
+        <div class="tm">{fmtTime(e.start_datetime)}</div>
         <div class="bd">
           <div class="tt">{e.title}</div>
           <div class="mt">

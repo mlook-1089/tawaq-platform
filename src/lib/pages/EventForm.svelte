@@ -10,11 +10,39 @@
 
   let type = $state(event?.type || allowedTypes[0] || 'cultural');
   let title = $state(event?.title || '');
-  let start_at = $state(event ? fmtInput(event.start_at) : '');
-  let end_at = $state(event?.end_at ? fmtInput(event.end_at) : '');
+  let start_at = $state(event ? fmtInput(event.start_datetime) : '');
+  let end_at = $state(event?.end_datetime ? fmtInput(event.end_datetime) : '');
   let location_name = $state(event?.location_name || '');
-  let location_url = $state(event?.location_url || '');
-  let notes = $state(event?.notes || '');
+  let location_url = $state(event?.maps_url || '');
+  let notes = $state(event?.description || '');
+  let geofence_lat = $state<string>(event?.geofence_lat?.toString() || '');
+  let geofence_lng = $state<string>(event?.geofence_lng?.toString() || '');
+  let geofence_radius = $state<string>(event?.geofence_radius_m?.toString() || '150');
+  let gettingLocation = $state(false);
+  let locMsg = $state('');
+
+  async function useMyLocation() {
+    gettingLocation = true;
+    locMsg = '';
+    if (!navigator.geolocation) {
+      locMsg = 'الموقع غير مدعوم في المتصفح';
+      gettingLocation = false;
+      return;
+    }
+    navigator.geolocation.getCurrentPosition(
+      (pos) => {
+        geofence_lat = pos.coords.latitude.toFixed(6);
+        geofence_lng = pos.coords.longitude.toFixed(6);
+        locMsg = 'تم تحديد الموقع ✓';
+        gettingLocation = false;
+      },
+      (err) => {
+        locMsg = 'تعذّر الحصول على الموقع: ' + err.message;
+        gettingLocation = false;
+      },
+      { enableHighAccuracy: true, timeout: 10000 }
+    );
+  }
   let saving = $state(false);
   let error = $state('');
 
@@ -24,12 +52,15 @@
     try {
       const payload: any = {
         type, title: title.trim(),
-        start_at: new Date(start_at).toISOString(),
-        end_at: end_at ? new Date(end_at).toISOString() : null,
+        start_datetime: new Date(start_at).toISOString(),
+        end_datetime: end_at ? new Date(end_at).toISOString() : null,
         location_name: location_name.trim() || null,
-        location_url: location_url.trim() || null,
-        notes: notes.trim() || null,
-        color_tag: EVENT_TYPES[type]?.color || '#0E2B22'
+        maps_url: location_url.trim() || null,
+        description: notes.trim() || null,
+        color_tag: EVENT_TYPES[type]?.color || '#0E2B22',
+        geofence_lat: geofence_lat ? Number(geofence_lat) : null,
+        geofence_lng: geofence_lng ? Number(geofence_lng) : null,
+        geofence_radius_m: (geofence_lat && geofence_lng) ? Number(geofence_radius) : null
       };
       let res;
       if (isEdit) {
@@ -95,6 +126,31 @@
       <div class="field">
         <label>ملاحظات</label>
         <textarea bind:value={notes} rows="3" placeholder="تفاصيل إضافية…"></textarea>
+      </div>
+
+      <div class="geofence-box">
+        <div class="gf-header">
+          <span>📍 موقع التحضير الذكي (Geofence)</span>
+          <button type="button" class="use-loc" onclick={useMyLocation} disabled={gettingLocation}>
+            {gettingLocation ? 'جارٍ…' : 'استخدم موقعي الحالي'}
+          </button>
+        </div>
+        {#if locMsg}<div class="loc-msg">{locMsg}</div>{/if}
+        <div class="gf-row">
+          <div class="field compact">
+            <label>خط العرض</label>
+            <input type="number" step="any" bind:value={geofence_lat} placeholder="24.7136" />
+          </div>
+          <div class="field compact">
+            <label>خط الطول</label>
+            <input type="number" step="any" bind:value={geofence_lng} placeholder="46.6753" />
+          </div>
+          <div class="field compact">
+            <label>نصف القطر (م)</label>
+            <input type="number" min="20" max="2000" bind:value={geofence_radius} />
+          </div>
+        </div>
+        <p class="hint">عند حفظ الموقع، الأعضاء يستطيعون تحضير أنفسهم تلقائياً عند الوصول للنطاق.</p>
       </div>
 
       <div class="mf">
@@ -212,4 +268,52 @@
   }
   .btn:disabled { opacity: .5; }
   .btn.ghost { background: transparent; color: var(--brand); border: 1.5px solid var(--line); }
+
+  .geofence-box {
+    background: var(--gold-soft);
+    border: 1px dashed var(--gold);
+    border-radius: 13px;
+    padding: 14px;
+    margin-bottom: 14px;
+  }
+  .gf-header {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    margin-bottom: 10px;
+    font-size: 13px;
+    font-weight: 700;
+    color: var(--brand);
+    flex-wrap: wrap;
+    gap: 8px;
+  }
+  .use-loc {
+    background: var(--brand);
+    color: #fff;
+    border: none;
+    border-radius: 8px;
+    padding: 6px 11px;
+    font-size: 11px;
+    font-weight: 600;
+    cursor: pointer;
+  }
+  .use-loc:disabled { opacity: .5; }
+  .loc-msg {
+    padding: 6px 10px;
+    background: var(--card);
+    border-radius: 8px;
+    font-size: 11.5px;
+    color: var(--brand);
+    margin-bottom: 10px;
+  }
+  .gf-row {
+    display: grid;
+    grid-template-columns: 1fr 1fr;
+    gap: 8px;
+  }
+  @media (min-width: 480px) { .gf-row { grid-template-columns: 1fr 1fr 1fr; } }
+  .gf-row .field { margin-bottom: 0; }
+  .field.compact label { font-size: 11px; }
+  .field.compact input { padding: 9px 11px; font-size: 14px; }
+  .hint { font-size: 11px; color: var(--ink3); margin-top: 8px; }
 </style>
