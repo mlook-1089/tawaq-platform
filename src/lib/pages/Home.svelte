@@ -8,39 +8,46 @@
   let nextEvent = $state<any>(null);
   let loading = $state(true);
   let countdown = $state({ d: 0, h: 0, m: 0 });
-  let timer: any;
+  let timer: ReturnType<typeof setInterval> | undefined;
 
   const canSeeReports = $derived(
     $roles.includes('super_admin') ||
     $roles.some(r => r.startsWith('mod_'))
   );
 
-  onMount(async () => {
-    const { data } = await supabase
-      .from('events')
-      .select('id,type,title,start_datetime,end_datetime,location_name,color_tag')
-      .is('deleted_at', null)
-      .gte('start_datetime', new Date().toISOString())
-      .order('start_datetime', { ascending: true })
-      .limit(1);
-    nextEvent = data?.[0] || null;
-    loading = false;
+  onMount(() => {
+    let cancelled = false;
+    void (async () => {
+      const { data } = await supabase
+        .from('events')
+        .select('id,type,title,start_datetime,end_datetime,location_name,color_tag')
+        .is('deleted_at', null)
+        .gte('start_datetime', new Date().toISOString())
+        .order('start_datetime', { ascending: true })
+        .limit(1);
+      if (cancelled) return;
+      nextEvent = data?.[0] || null;
+      loading = false;
 
-    if (nextEvent) {
-      const target = new Date(nextEvent.start_datetime).getTime();
-      const tick = () => {
-        const diff = Math.max(0, target - Date.now());
-        countdown = {
-          d: Math.floor(diff / 86400000),
-          h: Math.floor(diff % 86400000 / 3600000),
-          m: Math.floor(diff % 3600000 / 60000)
+      if (nextEvent) {
+        const target = new Date(nextEvent.start_datetime).getTime();
+        const tick = () => {
+          const diff = Math.max(0, target - Date.now());
+          countdown = {
+            d: Math.floor(diff / 86400000),
+            h: Math.floor(diff % 86400000 / 3600000),
+            m: Math.floor(diff % 3600000 / 60000)
+          };
         };
-      };
-      tick();
-      timer = setInterval(tick, 30000);
-    }
+        tick();
+        timer = setInterval(tick, 30000);
+      }
+    })();
 
-    return () => timer && clearInterval(timer);
+    return () => {
+      cancelled = true;
+      if (timer) clearInterval(timer);
+    };
   });
 
   const firstName = $derived(($profile?.full_name || 'عضو').split(' ')[0]);

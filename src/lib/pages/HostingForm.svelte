@@ -114,7 +114,7 @@
 </script>
 
 <HostingModal {title} busy={saving} {onclose}>
-  <form class="u-modal-body" onsubmit={save} aria-busy={loading || saving}>
+  <form id="hosting-form" class="u-modal-body" onsubmit={save} aria-busy={loading || saving}>
     {#if error}<div class="u-alert err" role="alert">{error}</div>{/if}
 
     {#if loading}
@@ -179,7 +179,7 @@
   <div class="u-modal-footer">
     <button type="button" class="u-btn u-btn-ghost" disabled={saving} onclick={onclose}>إلغاء</button>
     {#if error}<button type="button" class="u-btn u-btn-ghost" disabled={loading || saving} onclick={load}>تحديث الخيارات</button>{/if}
-    <button type="submit" class="u-btn u-btn-primary" disabled={saving || loading || (mode === 'swap' ? !replacements.length : !events.length)} onclick={save}>
+    <button type="submit" form="hosting-form" class="u-btn u-btn-primary" disabled={saving || loading || (mode === 'swap' ? !replacements.length : !events.length)}>
       {saving ? 'جارٍ الحفظ…' : mode === 'swap' ? 'إرسال الطلب' : isEdit ? 'حفظ' : 'إضافة'}
     </button>
   </div>
