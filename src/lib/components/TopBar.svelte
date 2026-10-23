@@ -1,7 +1,7 @@
 <script lang="ts">
   import { profile, route } from '../stores';
-  import { initials } from '../utils';
   import HexLogo from './HexLogo.svelte';
+  import Avatar from './Avatar.svelte';
 </script>
 
 <header class="u-topbar">
@@ -10,7 +10,12 @@
     <span>تواق</span>
   </div>
   <button class="user-btn" onclick={() => route.set('account')} aria-label="فتح حسابي">
-    <span class="u-avatar circle sm">{initials($profile?.full_name || 'ع')}</span>
+    <Avatar
+      url={$profile?.avatar_url}
+      name={$profile?.full_name || 'ع'}
+      size="sm"
+      circle={true}
+    />
   </button>
 </header>
 
