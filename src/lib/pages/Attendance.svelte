@@ -5,6 +5,8 @@
   import { fmtDate, fmtTime, EVENT_TYPES } from '../utils';
   import PageHead from '../components/PageHead.svelte';
   import AttendanceManage from './AttendanceManage.svelte';
+  import AttendanceQR from './AttendanceQR.svelte';
+  import AttendanceScan from './AttendanceScan.svelte';
 
   let events = $state<any[]>([]);
   let myAttendance = $state<Record<string, any>>({});
@@ -12,6 +14,8 @@
   let busyEvent = $state<string | null>(null);
   let msg = $state<{ eventId: string; text: string; ok: boolean } | null>(null);
   let manageEventId = $state<string | null>(null);
+  let qrEvent = $state<any>(null);
+  let showScanner = $state(false);
 
   async function load() {
     loading = true;
@@ -138,6 +142,10 @@
     💡 اضغط <b>"تحضير بالموقع"</b> عند الوصول للفعالية — النظام يتحقق من موقعك ويُسجّلك تلقائياً.
   </div>
 
+  <button class="u-btn u-btn-secondary block scan-btn" onclick={() => showScanner = true}>
+    📷 مسح QR
+  </button>
+
   <div class="u-stack">
     {#each events as e (e.id)}
       {@const att = myAttendance[e.id]}
@@ -192,9 +200,14 @@
         {/if}
 
         {#if $isAdmin}
-          <button class="u-btn u-btn-ghost sm block admin-btn" onclick={() => manageEventId = e.id}>
-            إدارة الحضور (مسؤول)
-          </button>
+          <div class="u-grid u-grid-2 admin-actions">
+            <button class="u-btn u-btn-secondary sm" onclick={() => qrEvent = e}>
+              📱 عرض QR
+            </button>
+            <button class="u-btn u-btn-ghost sm" onclick={() => manageEventId = e.id}>
+              إدارة الحضور
+            </button>
+          </div>
         {/if}
       </article>
     {/each}
@@ -205,8 +218,20 @@
   <AttendanceManage eventId={manageEventId} onclose={() => { manageEventId = null; load(); }} />
 {/if}
 
+{#if qrEvent}
+  <AttendanceQR eventId={qrEvent.id} eventTitle={qrEvent.title} onclose={() => qrEvent = null} />
+{/if}
+
+{#if showScanner}
+  <AttendanceScan
+    onclose={() => showScanner = false}
+    onsuccess={() => { showScanner = false; void load(); }}
+  />
+{/if}
+
 <style>
   .att-card { position: relative; }
+  .scan-btn { margin: var(--sp-2) 0; }
   .att-card.current {
     border-color: var(--ok);
     box-shadow: 0 0 0 2px var(--ok-soft), var(--shadow);
@@ -276,6 +301,6 @@
     text-align: center;
   }
 
-  .admin-btn { margin-top: var(--sp-1); }
+  .admin-actions { margin-top: var(--sp-1); }
   .block { width: 100%; }
 </style>
