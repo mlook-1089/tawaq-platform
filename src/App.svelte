@@ -1,19 +1,21 @@
 <script lang="ts">
   import { onMount } from 'svelte';
   import { supabase } from './lib/supabase';
+  import { session, loadProfile } from './lib/stores';
   import Login from './lib/Login.svelte';
-  import Welcome from './lib/Welcome.svelte';
+  import Shell from './lib/Shell.svelte';
 
-  let session = $state<any>(null);
   let loading = $state(true);
 
   onMount(async () => {
     const { data } = await supabase.auth.getSession();
-    session = data.session;
+    session.set(data.session);
+    if (data.session?.user?.id) await loadProfile(data.session.user.id);
     loading = false;
 
-    supabase.auth.onAuthStateChange((_evt, s) => {
-      session = s;
+    supabase.auth.onAuthStateChange(async (_e, s) => {
+      session.set(s);
+      if (s?.user?.id) await loadProfile(s.user.id);
     });
   });
 </script>
@@ -24,15 +26,15 @@
       <div class="spinner"></div>
       <p>جارٍ التحميل…</p>
     </div>
-  {:else if session}
-    <Welcome {session} />
+  {:else if $session}
+    <Shell />
   {:else}
     <Login />
   {/if}
 </main>
 
 <style>
-  main { flex: 1; display: flex; flex-direction: column; }
+  main { min-height: 100vh; display: flex; flex-direction: column; }
   .loading {
     flex: 1;
     display: flex;
