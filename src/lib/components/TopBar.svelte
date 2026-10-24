@@ -1,7 +1,16 @@
 <script lang="ts">
+  import { onMount } from 'svelte';
   import { profile, route } from '../stores';
   import HexLogo from './HexLogo.svelte';
   import Avatar from './Avatar.svelte';
+
+  onMount(() => {
+    const onScroll = () => {
+      document.body.classList.toggle('scrolled', window.scrollY > 0);
+    };
+    window.addEventListener('scroll', onScroll, { passive: true });
+    return () => window.removeEventListener('scroll', onScroll);
+  });
 </script>
 
 <header class="u-topbar">
@@ -22,6 +31,9 @@
 </header>
 
 <style>
+  :global(.u-topbar) {
+    min-height: 56px;
+  }
   .u-brand-chip-btn {
     background: transparent;
     border: none;

@@ -778,3 +778,65 @@
 @media (prefers-reduced-motion: reduce) {
   *, *::before, *::after { animation-duration: 1ms !important; transition-duration: 1ms !important; }
 }
+
+/* =========================================================
+   DESIGN-SYSTEM COMPLIANCE PASS — appended, never modifying above
+   ========================================================= */
+
+/* ---- Rule 5: Stat cards — tabular nums + shadow ---- */
+.u-stat .num {
+  font-variant-numeric: tabular-nums;
+  font-feature-settings: "tnum";
+}
+.u-stat { box-shadow: var(--shadow); }
+
+/* ---- Rule 6: Empty state — icon centred, properly muted ---- */
+.u-empty .ic {
+  font-size: 36px;
+  opacity: 0.45;
+  color: var(--ink3);
+}
+.u-empty svg { opacity: 0.45; color: var(--ink3); }
+
+/* ---- Rule 8: Progress bar — gradient fill ---- */
+.u-progress-bar .pb-fill {
+  background: linear-gradient(to left, var(--brand), var(--brand-3));
+}
+
+/* ---- Rule 9: Filter chips row — edge-fade mask ---- */
+.u-chips {
+  -webkit-mask-image: linear-gradient(to left, transparent 0, black 24px, black calc(100% - 24px), transparent 100%);
+          mask-image: linear-gradient(to left, transparent 0, black 24px, black calc(100% - 24px), transparent 100%);
+  padding-inline: var(--sp-3);
+}
+
+/* ---- Rule 13: Dark mode — nav contrast ---- */
+html.dark .u-nav-item {
+  color: color-mix(in oklab, var(--on-brand) 55%, transparent);
+}
+html.dark .u-nav-item.on {
+  color: var(--on-brand);
+}
+
+/* ---- Rule 2: Bottom nav — active text weight + inactive mute ---- */
+.u-nav-item {
+  color: color-mix(in oklab, var(--on-brand) 60%, transparent);
+}
+.u-nav-item.on {
+  color: var(--on-brand);
+  font-weight: var(--fw-bold);
+}
+
+/* ---- Rule 2: Bottom nav — gold active indicator via ::after ---- */
+.u-nav-item.on::after {
+  content: "";
+  display: block;
+  width: 20px;
+  height: 3px;
+  background: var(--gold);
+  border-radius: var(--r-pill);
+  position: absolute;
+  bottom: 0;
+  left: 50%;
+  transform: translateX(-50%);
+}

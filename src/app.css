@@ -16,6 +16,7 @@ time,
 [data-numeric] {
   font-family: var(--font-num);
   font-variant-numeric: tabular-nums;
+  font-feature-settings: "tnum";
 }
 
 a { color: var(--brand-ink); text-decoration: none; }
@@ -35,4 +36,68 @@ input, select, textarea { font-family: inherit; }
   color: var(--ink3);
   min-height: 100vh;
   min-height: 100dvh;
+}
+
+/* =========================================================
+   GLOBAL UX POLISH — Mobile Tactile + RTL Typography
+   ========================================================= */
+
+/* 1. Remove iOS tap flash */
+* { -webkit-tap-highlight-color: transparent; }
+
+/* 2. Active scale feedback for interactive elements */
+button:active:not(:disabled),
+[role="button"]:active,
+.u-card.interactive:active {
+  transform: scale(0.97);
+}
+
+/* 3. RTL-safe text wrapping — no mid-word breaks on Arabic */
+p, li, dd, .u-list-sub, .u-muted, .u-field-hint, .u-alert {
+  overflow-wrap: normal;
+  word-break: keep-all;
+  line-break: anywhere;
+}
+h1, h2, h3, h4 {
+  overflow-wrap: normal;
+  word-break: keep-all;
+  line-break: anywhere;
+  letter-spacing: var(--tracking-tight);
+}
+
+/* 4. TopBar scrolled shadow */
+html.scrolled .u-topbar {
+  box-shadow: 0 1px 8px rgba(0,0,0,0.08);
+  border-bottom-color: var(--line2);
+}
+html.dark.scrolled .u-topbar {
+  box-shadow: 0 1px 8px rgba(0,0,0,0.35);
+}
+
+
+/* ---- Rule 1: Tap-highlight & active-scale feedback ---- */
+* { -webkit-tap-highlight-color: transparent; }
+button, [role="button"], a {
+  transition: transform var(--t-fast);
+}
+button:active:not(:disabled), [role="button"]:active, .u-card.interactive:active {
+  transform: scale(0.97);
+}
+
+/* ---- Rule 11: Page-level RTL text fix ---- */
+p, li, .u-list-sub, .u-muted, .u-field-hint {
+  overflow-wrap: normal;
+  word-break: keep-all;
+  line-break: anywhere;
+}
+h1, h2, h3, h4 {
+  overflow-wrap: normal;
+  word-break: keep-all;
+  line-break: anywhere;
+  letter-spacing: var(--tracking-tight);
+}
+
+/* ---- Rule 12: TopBar scrolled shadow ---- */
+.scrolled .u-topbar {
+  box-shadow: 0 2px 8px color-mix(in oklab, var(--ink) 12%, transparent);
 }

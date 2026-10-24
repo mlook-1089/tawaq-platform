@@ -255,7 +255,10 @@
     width: 100%;
     margin-bottom: var(--sp-2);
     color: var(--ink2);
+    transition: transform var(--t-fast), box-shadow var(--t-fast), border-color var(--t-fast);
   }
+  .news-promo-card:hover { transform: translateY(-2px); box-shadow: var(--shadow-md); }
+  .news-promo-card:active { transform: scale(0.97); box-shadow: none; }
   .news-promo-icon {
     width: var(--touch);
     height: var(--touch);
@@ -285,39 +288,64 @@
   }
 
   .hero-skeleton { min-height: calc(var(--sp-8) * 3); }
-  .next-event { position: relative; display: flex; flex-direction: column; gap: var(--sp-2); margin-bottom: var(--sp-2); }
+  .next-event {
+    position: relative;
+    display: flex;
+    flex-direction: column;
+    gap: var(--sp-2);
+    margin-bottom: var(--sp-2);
+    /* Rule 3: brand-colored hero card */
+    background: var(--brand);
+    overflow: hidden;
+  }
+  /* Rule 3: subtle hex pattern overlay */
+  .next-event::before {
+    content: "";
+    position: absolute;
+    inset: 0;
+    z-index: 0;
+    background: var(--brand-soft);
+    clip-path: var(--hex-clip);
+    opacity: 0.08;
+    pointer-events: none;
+  }
+  .next-event > * { position: relative; z-index: 1; }
   .hero-label {
-    color: var(--ink3);
+    color: color-mix(in oklab, var(--on-brand) 60%, transparent);
     font: var(--fw-semi) var(--fs-tiny) var(--font-sans);
     letter-spacing: var(--tracking-wide);
     text-transform: uppercase;
   }
-  .next-event h2 { margin: 0; font: var(--fw-bold) var(--fs-2xl)/1.3 var(--font-sans); color: var(--ink); }
-  .event-meta { display: flex; flex-wrap: wrap; gap: var(--sp-2); color: var(--ink2); font-size: var(--fs-sm); }
+  .next-event h2 { margin: 0; font: var(--fw-bold) var(--fs-2xl)/1.3 var(--font-sans); color: var(--on-brand); }
+  .event-meta { display: flex; flex-wrap: wrap; gap: var(--sp-2); color: color-mix(in oklab, var(--on-brand) 75%, transparent); font-size: var(--fs-sm); }
   .event-meta span { display: inline-flex; align-items: center; gap: var(--sp-05); }
-  .hijri { color: var(--ink3); font-size: var(--fs-xs); }
-  .countdown { color: var(--brand-ink); font: var(--fw-semi) var(--fs-sm) var(--font-num); }
-  .event-type { display: inline-flex; align-items: center; gap: var(--sp-1); color: var(--ink3); font-size: var(--fs-xs); }
-  .type-dot { width: calc(var(--sp-1) - 2px); height: calc(var(--sp-1) - 2px); border-radius: var(--r-pill); background: var(--brand); }
+  .hijri { color: color-mix(in oklab, var(--on-brand) 55%, transparent); font-size: var(--fs-xs); }
+  .countdown { color: var(--gold-bright); font: var(--fw-semi) var(--fs-sm) var(--font-num); }
+  .event-type { display: inline-flex; align-items: center; gap: var(--sp-1); color: color-mix(in oklab, var(--on-brand) 60%, transparent); font-size: var(--fs-xs); }
+  .type-dot { width: calc(var(--sp-1) - 2px); height: calc(var(--sp-1) - 2px); border-radius: var(--r-pill); background: var(--gold-bright); }
 
+  /* Rule 4: Quick access — 2-column grid */
   .quick-card { display: flex; flex-direction: column; gap: var(--sp-2); margin-bottom: var(--sp-2); }
-  .quick-grid { display: grid; gap: var(--sp-1); }
+  .quick-grid { display: grid; grid-template-columns: 1fr 1fr; gap: var(--sp-1); }
   .quick-action {
-    display: grid;
-    grid-template-columns: auto 1fr auto;
+    display: flex;
+    flex-direction: column;
     align-items: center;
-    gap: var(--sp-2);
-    min-height: var(--touch);
-    padding: var(--sp-1) var(--sp-2);
+    justify-content: center;
+    gap: var(--sp-1);
+    min-height: 72px;
+    text-align: center;
     border: 1px solid var(--line);
-    border-radius: var(--r-xs);
+    border-radius: var(--r-lg);
     background: transparent;
     color: var(--ink);
-    text-align: start;
+    padding: var(--sp-2);
     font: var(--fw-semi) var(--fs-sm) var(--font-sans);
   }
   .quick-action:hover { background: var(--muted-bg); border-color: var(--line2); }
   .quick-icon { width: var(--sp-6); height: var(--sp-6); display: grid; place-items: center; color: var(--brand); background: var(--brand-soft); border-radius: var(--r-xs); }
+  /* Rule 4: hide chevron icons inside the 2-col quick-action grid */
+  .quick-action > :global(svg:not(.quick-icon svg)) { display: none; }
 
   .finance-icon { background: var(--gold-soft); color: var(--gold-dark); }
   .admin-card { display: flex; align-items: center; gap: var(--sp-2); text-align: start; width: 100%; color: var(--ink2); }
