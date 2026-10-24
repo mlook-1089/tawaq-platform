@@ -33,6 +33,19 @@ export function fmtCurrency(amount: number | string | null | undefined): string 
   return `ر.س ${n.toFixed(2)}`;
 }
 
+export function timeAgo(iso: string | null | undefined): string {
+  if (!iso) return '';
+  const diff = Date.now() - new Date(iso).getTime();
+  const m = Math.floor(diff / 60000);
+  if (m < 1) return 'الآن';
+  if (m < 60) return `منذ ${m} د`;
+  const h = Math.floor(m / 60);
+  if (h < 24) return `منذ ${h} س`;
+  const d = Math.floor(h / 24);
+  if (d < 30) return `منذ ${d} ي`;
+  return fmtDate(iso);
+}
+
 export function fmtInput(iso: string | null | undefined, dateOnly = false): string {
   if (!iso) return '';
   const d = new Date(iso);
