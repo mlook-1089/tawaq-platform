@@ -18,10 +18,15 @@
       showPasswordReset = true;
     }
 
-    const { data } = await supabase.auth.getSession();
-    session.set(data.session);
-    if (data.session?.user?.id) await loadProfile(data.session.user.id);
-    loading = false;
+    try {
+      const { data } = await supabase.auth.getSession();
+      session.set(data.session);
+      if (data.session?.user?.id) await loadProfile(data.session.user.id);
+    } catch (err) {
+      console.error('Failed to load session:', err);
+    } finally {
+      loading = false;
+    }
 
     supabase.auth.onAuthStateChange(async (event, s) => {
       session.set(s);

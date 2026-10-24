@@ -78,7 +78,8 @@
   function formatWaLink(phone: string | null): string {
     if (!phone) return '';
     let p = phone.replace(/\D/g, '');
-    if (p.startsWith('05')) p = '966' + p.slice(1);
+    if (p.startsWith('00966')) p = p.slice(2);
+    else if (p.startsWith('05')) p = '966' + p.slice(1);
     else if (p.startsWith('5')) p = '966' + p;
     return `https://wa.me/${p}`;
   }

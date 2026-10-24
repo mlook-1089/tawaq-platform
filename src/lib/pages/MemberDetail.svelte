@@ -49,7 +49,8 @@
   const cleanPhone = $derived.by(() => {
     if (!member?.phone) return '';
     let p = member.phone.replace(/\D/g, '');
-    if (p.startsWith('05')) p = '966' + p.slice(1);
+    if (p.startsWith('00966')) p = p.slice(2);
+    else if (p.startsWith('05')) p = '966' + p.slice(1);
     else if (p.startsWith('5')) p = '966' + p;
     return p;
   });

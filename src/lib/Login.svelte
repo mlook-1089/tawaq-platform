@@ -12,6 +12,16 @@
   let info = $state('');
   let mode = $state<'signin' | 'signup' | 'forgot'>('signin');
 
+  function translateAuthError(msg: string): string {
+    if (!msg) return 'حدث خطأ غير متوقع';
+    if (msg.includes('Invalid login credentials')) return 'البريد الإلكتروني أو كلمة المرور غير صحيحة';
+    if (msg.includes('Email not confirmed')) return 'يرجى تأكيد البريد الإلكتروني عبر الرابط المرسل إليك';
+    if (msg.includes('User already registered')) return 'هذا البريد مسجل مسبقاً، يمكنك الدخول مباشرة';
+    if (msg.includes('Password should be at least')) return 'كلمة المرور يجب أن تكون 6 خانات على الأقل';
+    if (msg.includes('rate limit') || msg.includes('once every 60 seconds')) return 'لأسباب أمنية، يرجى الانتظار دقيقة قبل طلب الرابط مرة أخرى';
+    return msg;
+  }
+
   async function handleSubmit(e: Event) {
     e.preventDefault();
     error = ''; info = ''; loading = true;
@@ -33,7 +43,7 @@
         info = 'تم إرسال رابط استعادة كلمة المرور إلى بريدك الإلكتروني.';
       }
     } catch (e: any) {
-      error = e.message || 'حدث خطأ';
+      error = translateAuthError(e.message || 'حدث خطأ');
     } finally {
       loading = false;
     }

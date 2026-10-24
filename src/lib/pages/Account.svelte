@@ -7,13 +7,17 @@
     Edit3,
     LogOut,
     MapPin,
+    Monitor,
+    Moon,
     ShieldCheck,
+    Sun,
     User,
     Users,
     Wallet
   } from 'lucide-svelte';
   import { supabase } from '../supabase';
   import { session, profile, roles, route, isAdmin } from '../stores';
+  import { theme, setTheme } from '../theme';
   import { getPushStatus, subscribeToPush, unsubscribeFromPush, type PushStatus } from '../push';
   import Icon from '../components/Icon.svelte';
   import Avatar from '../components/Avatar.svelte';
@@ -185,6 +189,32 @@
   </ul>
 </section>
 
+<section class="u-card theme-card">
+  <div class="u-row">
+    <div class="theme-icon"><Icon icon={Moon} size={19} /></div>
+    <div class="u-list-main">
+      <div class="u-list-title">المظهر والوضع الليلي</div>
+      <div class="u-list-sub">
+        {$theme === 'auto' ? 'تلقائي (حسب مظهر الجهاز)' : $theme === 'dark' ? 'الوضع الليلي (داكن)' : 'الوضع النهاري (فاتح)'}
+      </div>
+    </div>
+  </div>
+  <div class="u-seg block theme-seg">
+    <button class="seg-btn" class:on={$theme === 'auto'} onclick={() => setTheme('auto')}>
+      <Icon icon={Monitor} size={14} />
+      <span>تلقائي</span>
+    </button>
+    <button class="seg-btn" class:on={$theme === 'light'} onclick={() => setTheme('light')}>
+      <Icon icon={Sun} size={14} />
+      <span>فاتح</span>
+    </button>
+    <button class="seg-btn" class:on={$theme === 'dark'} onclick={() => setTheme('dark')}>
+      <Icon icon={Moon} size={14} />
+      <span>داكن</span>
+    </button>
+  </div>
+</section>
+
 <section class="u-card push-card">
   <div class="u-row">
     <div class="push-icon"><Icon icon={Bell} size={19} /></div>
@@ -333,6 +363,29 @@
 
   .info-card {
     margin-bottom: var(--sp-2);
+  }
+  .theme-card {
+    display: flex;
+    flex-direction: column;
+    gap: var(--sp-2);
+    margin-bottom: var(--sp-2);
+  }
+  .theme-icon {
+    width: var(--touch);
+    height: var(--touch);
+    display: grid;
+    place-items: center;
+    background: var(--brand-soft);
+    color: var(--brand-ink);
+    border-radius: var(--r-xs);
+    flex-shrink: 0;
+  }
+  .theme-seg .seg-btn {
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
+    gap: var(--sp-1);
+    font-size: var(--fs-xs);
   }
   .push-card {
     display: flex;
