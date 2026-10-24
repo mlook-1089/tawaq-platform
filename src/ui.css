@@ -720,6 +720,7 @@ main.u-main {
   transform: translateY(105%);
   transition: transform .25s ease;
   max-height: 85vh;
+  max-height: 85dvh;
   overflow-y: auto;
 }
 .u-sheet.show { transform: none; }
@@ -764,6 +765,7 @@ main.u-main {
   max-width: 480px;
   width: 100%;
   max-height: 85vh;
+  max-height: 85dvh;
   display: flex;
   flex-direction: column;
   box-shadow: var(--shadow-lg);
@@ -816,6 +818,7 @@ main.u-main {
     border-radius: 22px 22px 0 0;
     max-width: 100%;
     max-height: 88vh;
+    max-height: 88dvh;
     animation: u-slide-up .36s;
     padding-bottom: env(safe-area-inset-bottom, 0);
   }

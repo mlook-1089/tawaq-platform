@@ -178,7 +178,9 @@
     line-height: var(--lh-base);
     color: var(--ink);
     white-space: pre-wrap;
-    word-break: break-word;
+    word-break: keep-all;
+    line-break: anywhere;
+    overflow-wrap: normal;
   }
   .danger-btn:hover {
     background: var(--bad-soft);

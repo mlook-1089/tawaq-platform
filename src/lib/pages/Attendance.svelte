@@ -104,7 +104,15 @@
         busyEvent = null;
       },
       (err) => {
-        msg = { eventId: e.id, text: 'تعذّر الحصول على الموقع: ' + err.message, ok: false };
+        let text = 'تعذّر تحديد موقعك: ' + (err.message || 'خطأ غير معروف');
+        if (err.code === 1) {
+          text = 'تم رفض الإذن بالوصول للموقع الجغرافي. يرجى تفعيل إذن الموقع في إعدادات المتصفح.';
+        } else if (err.code === 2) {
+          text = 'تعذّر الاتصال بخدمة تحديد الموقع (GPS). يرجى التأكد من تشغيلها.';
+        } else if (err.code === 3) {
+          text = 'انتهت مهلة تحديد الموقع الجغرافي. يرجى إعادة المحاولة ثانية.';
+        }
+        msg = { eventId: e.id, text, ok: false };
         busyEvent = null;
       },
       { enableHighAccuracy: true, timeout: 15000, maximumAge: 0 }

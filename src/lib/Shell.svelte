@@ -40,6 +40,8 @@
       <Reports />
     {:else if $route === 'account'}
       <Account />
+    {:else}
+      <Home />
     {/if}
   </main>
   <BottomNav />

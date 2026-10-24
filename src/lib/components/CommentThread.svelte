@@ -750,7 +750,9 @@
     font-size: var(--fs-sm);
     color: var(--ink);
     line-height: var(--lh-base);
-    word-break: break-word;
+    word-break: keep-all;
+    line-break: anywhere;
+    overflow-wrap: normal;
   }
   .comment-body :global(.mention) {
     color: var(--brand);
