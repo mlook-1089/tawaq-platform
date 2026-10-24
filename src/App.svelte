@@ -2,22 +2,38 @@
   import { onMount } from 'svelte';
   import { LoaderCircle } from 'lucide-svelte';
   import { supabase } from './lib/supabase';
-  import { session, loadProfile } from './lib/stores';
+  import { session, profile, roles, loadProfile } from './lib/stores';
   import Login from './lib/Login.svelte';
   import Shell from './lib/Shell.svelte';
   import Icon from './lib/components/Icon.svelte';
+  import PasswordResetModal from './lib/components/PasswordResetModal.svelte';
 
   let loading = $state(true);
+  let showPasswordReset = $state(false);
 
   onMount(async () => {
+    // Check if URL indicates a password recovery callback
+    if (typeof window !== 'undefined' && window.location.hash.includes('type=recovery')) {
+      showPasswordReset = true;
+    }
+
     const { data } = await supabase.auth.getSession();
     session.set(data.session);
     if (data.session?.user?.id) await loadProfile(data.session.user.id);
     loading = false;
 
-    supabase.auth.onAuthStateChange(async (_e, s) => {
+    supabase.auth.onAuthStateChange(async (event, s) => {
       session.set(s);
-      if (s?.user?.id) await loadProfile(s.user.id);
+      if (s?.user?.id) {
+        await loadProfile(s.user.id);
+      } else {
+        profile.set(null);
+        roles.set([]);
+      }
+
+      if (event === 'PASSWORD_RECOVERY') {
+        showPasswordReset = true;
+      }
     });
   });
 </script>
@@ -29,6 +45,12 @@
   </div>
 {:else if $session}
   <Shell />
+  {#if showPasswordReset}
+    <PasswordResetModal onclose={() => (showPasswordReset = false)} />
+  {/if}
 {:else}
   <Login />
+  {#if showPasswordReset}
+    <PasswordResetModal onclose={() => (showPasswordReset = false)} />
+  {/if}
 {/if}

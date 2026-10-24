@@ -1,5 +1,5 @@
 <script lang="ts">
-  import { ArrowLeft, LogIn } from 'lucide-svelte';
+  import { ArrowLeft, KeyRound, LogIn, Mail } from 'lucide-svelte';
   import { supabase } from './supabase';
   import HexLogo from './components/HexLogo.svelte';
   import Icon from './components/Icon.svelte';
@@ -9,7 +9,7 @@
   let loading = $state(false);
   let error = $state('');
   let info = $state('');
-  let mode = $state<'signin' | 'signup'>('signin');
+  let mode = $state<'signin' | 'signup' | 'forgot'>('signin');
 
   async function handleSubmit(e: Event) {
     e.preventDefault();
@@ -18,10 +18,18 @@
       if (mode === 'signin') {
         const { error: err } = await supabase.auth.signInWithPassword({ email, password });
         if (err) throw err;
-      } else {
+      } else if (mode === 'signup') {
         const { error: err } = await supabase.auth.signUp({ email, password });
         if (err) throw err;
         info = 'تحقق من بريدك لتأكيد الحساب.';
+      } else if (mode === 'forgot') {
+        if (!email.trim()) throw new Error('يرجى إدخال البريد الإلكتروني');
+        const redirectTo = window.location.origin + window.location.pathname;
+        const { error: err } = await supabase.auth.resetPasswordForEmail(email.trim(), {
+          redirectTo
+        });
+        if (err) throw err;
+        info = 'تم إرسال رابط استعادة كلمة المرور إلى بريدك الإلكتروني.';
       }
     } catch (e: any) {
       error = e.message || 'حدث خطأ';
@@ -48,21 +56,44 @@
         <input id="email" class="u-input" type="email" bind:value={email} required autocomplete="email" />
       </div>
 
-      <div class="u-field">
-        <label for="password" class="u-field-label">كلمة المرور</label>
-        <input id="password" class="u-input" type="password" bind:value={password} required
-          autocomplete={mode === 'signin' ? 'current-password' : 'new-password'} />
-      </div>
+      {#if mode !== 'forgot'}
+        <div class="u-field">
+          <div class="field-h-row">
+            <label for="password" class="u-field-label">كلمة المرور</label>
+            {#if mode === 'signin'}
+              <button
+                type="button"
+                class="forgot-link"
+                onclick={() => { mode = 'forgot'; error = ''; info = ''; }}
+              >
+                نسيت كلمة المرور؟
+              </button>
+            {/if}
+          </div>
+          <input id="password" class="u-input" type="password" bind:value={password} required
+            autocomplete={mode === 'signin' ? 'current-password' : 'new-password'} />
+        </div>
+      {/if}
 
       <button class="u-btn u-btn-primary block" type="submit" disabled={loading}>
-        <Icon icon={mode === 'signin' ? LogIn : ArrowLeft} size={16} />
-        {loading ? 'جارٍ…' : (mode === 'signin' ? 'دخول' : 'إنشاء حساب')}
+        <Icon icon={mode === 'signin' ? LogIn : mode === 'signup' ? ArrowLeft : Mail} size={16} />
+        {loading ? 'جارٍ…' : (mode === 'signin' ? 'دخول' : mode === 'signup' ? 'إنشاء حساب' : 'إرسال رابط الاستعادة')}
       </button>
 
-      <button type="button" class="switch-mode"
-        onclick={() => { mode = mode === 'signin' ? 'signup' : 'signin'; error=''; info=''; }}>
-        {mode === 'signin' ? 'ليس لديك حساب؟ أنشئ حساباً' : 'لديك حساب؟ ادخل'}
-      </button>
+      {#if mode === 'forgot'}
+        <button
+          type="button"
+          class="switch-mode"
+          onclick={() => { mode = 'signin'; error = ''; info = ''; }}
+        >
+          تذكرت كلمة المرور؟ تسجيل الدخول
+        </button>
+      {:else}
+        <button type="button" class="switch-mode"
+          onclick={() => { mode = mode === 'signin' ? 'signup' : 'signin'; error=''; info=''; }}>
+          {mode === 'signin' ? 'ليس لديك حساب؟ أنشئ حساباً' : 'لديك حساب؟ ادخل'}
+        </button>
+      {/if}
     </form>
   </div>
 
@@ -118,6 +149,23 @@
   }
 
   .block { width: 100%; margin-top: var(--sp-1); }
+
+  .field-h-row {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+  }
+  .forgot-link {
+    background: none;
+    border: none;
+    padding: 0;
+    color: var(--brand-ink);
+    font-size: var(--fs-xs);
+    cursor: pointer;
+  }
+  .forgot-link:hover {
+    text-decoration: underline;
+  }
 
   .switch-mode {
     background: none; border: none;

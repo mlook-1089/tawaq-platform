@@ -19,7 +19,7 @@
     X
   } from 'lucide-svelte';
   import { supabase } from '../supabase';
-  import { roles, route } from '../stores';
+  import { session, profile, roles, route } from '../stores';
   import PageHead from '../components/PageHead.svelte';
   import Icon from '../components/Icon.svelte';
   import Avatar from '../components/Avatar.svelte';
@@ -29,7 +29,7 @@
 
   // Access check
   $effect(() => {
-    if (!$roles.includes('super_admin')) {
+    if ($session && $profile && !$roles.includes('super_admin')) {
       route.set('home');
     }
   });

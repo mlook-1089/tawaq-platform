@@ -26,4 +26,45 @@ export async function loadProfile(userId: string) {
   roles.set((r || []).map((x: any) => x.role));
 }
 
-export const route = writable<string>('home');
+const VALID_ROUTES = new Set([
+  'home',
+  'events',
+  'hosting',
+  'attendance',
+  'members',
+  'admin',
+  'news',
+  'finance',
+  'suggestions',
+  'reports',
+  'account'
+]);
+
+function parseRouteFromHash(): string {
+  if (typeof window === 'undefined') return 'home';
+  const raw = window.location.hash.replace(/^#\/?/, '').split('?')[0].split('&')[0];
+  return VALID_ROUTES.has(raw) ? raw : 'home';
+}
+
+export const route = writable<string>(parseRouteFromHash());
+
+if (typeof window !== 'undefined') {
+  // Sync route -> hash
+  route.subscribe((r) => {
+    if (!VALID_ROUTES.has(r)) return;
+    const current = window.location.hash.replace(/^#\/?/, '').split('?')[0].split('&')[0];
+    if (
+      current !== r &&
+      !window.location.hash.includes('access_token=') &&
+      !window.location.hash.includes('type=recovery')
+    ) {
+      window.location.hash = r;
+    }
+  });
+
+  // Sync hash -> route
+  window.addEventListener('hashchange', () => {
+    const fromHash = parseRouteFromHash();
+    route.set(fromHash);
+  });
+}

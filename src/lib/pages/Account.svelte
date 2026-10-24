@@ -10,7 +10,8 @@
     MapPin,
     ShieldCheck,
     User,
-    Users
+    Users,
+    Wallet
   } from 'lucide-svelte';
   import { supabase } from '../supabase';
   import { session, profile, roles, route, isAdmin } from '../stores';
@@ -156,6 +157,14 @@
   </div>
 </button>
 
+<button class="u-card interactive nav-card" onclick={() => route.set('finance')}>
+  <div class="nav-card-icon finance-icon"><Icon icon={Wallet} size={20} /></div>
+  <div class="nav-card-text">
+    <div class="nav-card-title">المالية والقطات</div>
+    <div class="nav-card-sub">عرض القطات والمساهمات وتقديم مطالبات الصرف</div>
+  </div>
+</button>
+
 <section class="u-card info-card">
   <div class="u-card-h">المعلومات</div>
   <ul class="info-list">
@@ -296,6 +305,10 @@
   .nav-card-icon {
     background: var(--brand-soft);
     color: var(--brand-ink);
+  }
+  .nav-card-icon.finance-icon {
+    background: var(--gold-soft);
+    color: var(--gold-dark);
   }
   .admin-text, .nav-card-text {
     flex: 1;

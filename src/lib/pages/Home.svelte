@@ -143,6 +143,15 @@
   <Icon icon={ChevronLeft} size={17} />
 </button>
 
+<button class="u-card interactive news-promo-card" onclick={() => route.set('finance')}>
+  <div class="news-promo-icon finance-icon"><Icon icon={Wallet} size={20} /></div>
+  <div class="news-promo-text">
+    <div class="news-promo-title">المالية والقطات</div>
+    <div class="news-promo-sub">متابعة قطات الاستراحة، الرحلات، ومطالبات الصرف</div>
+  </div>
+  <Icon icon={ChevronLeft} size={17} />
+</button>
+
 <section class="u-card quick-card">
   <div class="u-card-h">وصول سريع</div>
   <div class="quick-grid">
@@ -168,17 +177,6 @@
     </button>
   </div>
 </section>
-
-{#if $canManageFinance}
-  <button class="u-card interactive admin-card finance-home-card" onclick={() => route.set('finance')}>
-    <span class="quick-icon finance-icon"><Icon icon={Wallet} size={19} /></span>
-    <div class="admin-text">
-      <div class="admin-title">المالية والقطات</div>
-      <div class="admin-sub">متابعة قطات الاستراحة، الرحلات، ومطالبات الصرف</div>
-    </div>
-    <Icon icon={ChevronLeft} size={17} />
-  </button>
-{/if}
 
 {#if canSeeReports}
   <button class="u-card interactive admin-card" onclick={() => route.set('reports')}>
@@ -321,7 +319,6 @@
   .quick-action:hover { background: var(--muted-bg); border-color: var(--line2); }
   .quick-icon { width: var(--sp-6); height: var(--sp-6); display: grid; place-items: center; color: var(--brand); background: var(--brand-soft); border-radius: var(--r-xs); }
 
-  .finance-home-card { margin-bottom: var(--sp-2); }
   .finance-icon { background: var(--gold-soft); color: var(--gold-dark); }
   .admin-card { display: flex; align-items: center; gap: var(--sp-2); text-align: start; width: 100%; color: var(--ink2); }
   .admin-text { flex: 1; min-width: 0; }
