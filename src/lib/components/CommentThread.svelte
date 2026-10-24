@@ -16,6 +16,7 @@
   import { supabase } from '../supabase';
   import { session, isAdmin } from '../stores';
   import { timeAgo } from '../utils';
+  import { confirmDialog, toastErr, toastOk } from '../toast';
   import Icon from './Icon.svelte';
   import Avatar from './Avatar.svelte';
 
@@ -359,16 +360,23 @@
   }
 
   async function deleteComment(commentId: string) {
-    if (!confirm('حذف هذا التعليق؟')) return;
+    const ok = await confirmDialog({
+      title: 'حذف التعليق',
+      message: 'لن يمكن استرجاع هذا التعليق.',
+      confirmLabel: 'حذف',
+      danger: true
+    });
+    if (!ok) return;
     try {
       const { error: err } = await supabase
         .from('comments')
         .update({ deleted_at: new Date().toISOString() })
         .eq('id', commentId);
       if (err) throw err;
+      toastOk('تم حذف التعليق');
       await loadComments();
     } catch (e: any) {
-      alert(e.message || 'تعذّر حذف التعليق');
+      toastErr(e.message || 'تعذّر حذف التعليق');
     }
   }
 
@@ -390,7 +398,7 @@
       editText = '';
       await loadComments();
     } catch (e: any) {
-      alert(e.message || 'تعذّر تعديل التعليق');
+      toastErr(e.message || 'تعذّر تعديل التعليق');
     }
   }
 

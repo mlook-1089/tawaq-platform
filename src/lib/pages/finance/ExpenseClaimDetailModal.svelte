@@ -13,6 +13,7 @@
   import { supabase } from '../../supabase';
   import { session, canManageFinance } from '../../stores';
   import { fmtCurrency, fmtDate } from '../../utils';
+  import { confirmDialog, toastErr, toastOk } from '../../toast';
   import Icon from '../../components/Icon.svelte';
   import Avatar from '../../components/Avatar.svelte';
   import CommentThread from '../../components/CommentThread.svelte';
@@ -68,7 +69,13 @@
 
   async function resolveClaim(newStatus: 'approved' | 'rejected' | 'paid') {
     const actionLabel = newStatus === 'approved' ? 'اعتماد' : newStatus === 'rejected' ? 'رفض' : 'تسجيل الصرف';
-    if (!confirm(`هل أنت متأكد من ${actionLabel} المطالبة؟`)) return;
+    const ok = await confirmDialog({
+      title: `${actionLabel} المطالبة`,
+      message: `هل أنت متأكد من ${actionLabel} هذه المطالبة؟`,
+      confirmLabel: actionLabel,
+      danger: newStatus === 'rejected'
+    });
+    if (!ok) return;
 
     busy = true;
     error = '';

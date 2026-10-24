@@ -100,7 +100,7 @@
       <button class="u-modal-close" onclick={onclose} aria-label="إغلاق"><Icon icon={X} /></button>
     </div>
 
-    <form class="u-modal-body" onsubmit={save}>
+    <form id="event-form" class="u-modal-body" onsubmit={save}>
       {#if error}<div class="u-alert err">{error}</div>{/if}
 
       <div class="u-field">
@@ -172,7 +172,7 @@
 
     <div class="u-modal-footer">
       <button type="button" class="u-btn u-btn-ghost" onclick={onclose}>إلغاء</button>
-      <button type="submit" class="u-btn u-btn-primary" disabled={saving} onclick={save}>
+      <button type="submit" form="event-form" class="u-btn u-btn-primary" disabled={saving}>
         <Icon icon={isEdit ? Save : Plus} size={15} />
         {saving ? 'جارٍ…' : (isEdit ? 'حفظ' : 'إضافة')}
       </button>

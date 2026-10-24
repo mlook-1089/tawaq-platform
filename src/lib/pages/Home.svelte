@@ -3,12 +3,7 @@
   import {
     BarChart3,
     CalendarDays,
-    ChevronLeft,
-    Clock,
-    Contact,
-    House,
     Lightbulb,
-    MapPin,
     Megaphone,
     UserCheck,
     Users,
@@ -16,17 +11,18 @@
     X
   } from 'lucide-svelte';
   import { supabase } from '../supabase';
-  import { profile, roles, route, canManageFinance } from '../stores';
-  import { fmtDate, fmtTime, hijriDate, EVENT_TYPES } from '../utils';
-  import PageHead from '../components/PageHead.svelte';
+  import { profile, roles, route } from '../stores';
+  import { fmtDate, fmtTime, hijriDate, EVENT_TYPES, timeAgo } from '../utils';
   import Icon from '../components/Icon.svelte';
   import EmptyIllustrations from '../components/EmptyIllustrations.svelte';
 
   let nextEvent = $state<any>(null);
+  let upcomingEvents = $state<any[]>([]);
+  let latestNews = $state<any[]>([]);
   let latestPinnedNews = $state<any>(null);
   let dismissedPinned = $state(false);
   let loading = $state(true);
-  let countdown = $state({ d: 0, h: 0, m: 0 });
+  let countdown = $state({ d: 0, h: 0, m: 0, pct: 0 });
   let timer: ReturnType<typeof setInterval> | undefined;
 
   const canSeeReports = $derived(
@@ -34,17 +30,30 @@
     $roles.some(r => r.startsWith('mod_'))
   );
 
+  const greg = $derived(
+    new Intl.DateTimeFormat('ar', { weekday: 'long', day: 'numeric', month: 'long' })
+      .format(new Date())
+  );
+  const hijri = $derived(hijriDate(new Date().toISOString()));
+  const firstName = $derived(($profile?.full_name || 'عضو').split(' ')[0]);
+
   onMount(() => {
     let cancelled = false;
     void (async () => {
-      const [{ data: evData }, { data: newsData }] = await Promise.all([
+      const [{ data: evData }, { data: newsData }, { data: pinnedData }] = await Promise.all([
         supabase
           .from('events')
           .select('id,type,title,start_datetime,end_datetime,location_name,color_tag')
           .is('deleted_at', null)
           .gte('start_datetime', new Date().toISOString())
           .order('start_datetime', { ascending: true })
-          .limit(1),
+          .limit(5),
+        supabase
+          .from('news')
+          .select('id,title,category,published_at')
+          .is('deleted_at', null)
+          .order('published_at', { ascending: false })
+          .limit(3),
         supabase
           .from('news')
           .select('id,title,category')
@@ -55,19 +64,23 @@
       ]);
 
       if (cancelled) return;
-      nextEvent = evData?.[0] || null;
-      latestPinnedNews = newsData?.[0] || null;
+      upcomingEvents = evData || [];
+      nextEvent = upcomingEvents[0] || null;
+      latestNews = newsData || [];
+      latestPinnedNews = pinnedData?.[0] || null;
       loading = false;
 
       if (nextEvent) {
         const target = new Date(nextEvent.start_datetime).getTime();
+        const createdAt = Date.now();
+        const total = target - createdAt;
         const tick = () => {
           const diff = Math.max(0, target - Date.now());
-          countdown = {
-            d: Math.floor(diff / 86400000),
-            h: Math.floor((diff % 86400000) / 3600000),
-            m: Math.floor((diff % 3600000) / 60000)
-          };
+          const d = Math.floor(diff / 86400000);
+          const h = Math.floor((diff % 86400000) / 3600000);
+          const m = Math.floor((diff % 3600000) / 60000);
+          const pct = total > 0 ? Math.max(0, Math.min(100, 100 - (diff / total) * 100)) : 100;
+          countdown = { d, h, m, pct };
         };
         tick();
         timer = setInterval(tick, 30000);
@@ -80,276 +93,184 @@
     };
   });
 
-  const firstName = $derived(($profile?.full_name || 'عضو').split(' ')[0]);
+  const newsCatLabels: Record<string, { label: string; pill: string }> = {
+    announcement: { label: 'إعلان', pill: 'brand' },
+    congratulation: { label: 'تهنئة', pill: 'gold' },
+    alert: { label: 'تنبيه', pill: 'warn' },
+    general: { label: 'عام', pill: 'info' }
+  };
+
+  const eventPill: Record<string, string> = {
+    weekly: 'brand', sport: 'gold', cultural: 'info',
+    competition: 'warn', event: 'brand', hospitality: 'gold'
+  };
+
+  function countdownText() {
+    if (countdown.d > 0) return `خلال ${countdown.d} يوم و${countdown.h} ساعة`;
+    if (countdown.h > 0) return `خلال ${countdown.h} ساعة و${countdown.m} دقيقة`;
+    return `خلال ${countdown.m} دقيقة`;
+  }
 </script>
 
-{#if latestPinnedNews && !dismissedPinned}
-  <div class="pinned-strip">
-    <div class="pinned-strip-right">
-      <span class="pinned-icon"><Icon icon={Megaphone} size={15} /></span>
-      <span class="pinned-text">{latestPinnedNews.title}</span>
+<div class="u-page">
+  <div class="u-top">
+    <div>
+      <div class="u-sub">{greg}{hijri ? ' · ' + hijri : ''}</div>
+      <h1>أهلاً، {firstName}</h1>
     </div>
-    <div class="pinned-strip-left">
-      <button class="pinned-link" onclick={() => route.set('news')}>اقرأ</button>
-      <button
-        class="pinned-close"
-        onclick={() => (dismissedPinned = true)}
-        aria-label="إغلاق التنبيه"
-      >
+  </div>
+
+  {#if latestPinnedNews && !dismissedPinned}
+    <div class="u-note gold pinned-strip">
+      <button class="pinned-main" onclick={() => route.set('news')}>
+        <Icon icon={Megaphone} size={15} />
+        <span>{latestPinnedNews.title}</span>
+      </button>
+      <button class="pinned-close" onclick={() => (dismissedPinned = true)} aria-label="إغلاق">
         <Icon icon={X} size={14} />
       </button>
     </div>
-  </div>
-{/if}
+  {/if}
 
-<PageHead icon={House} title={`أهلاً، ${firstName}`} subtitle="ملخص نشاط المجموعة وما هو قادم" />
-
-{#if loading}
-  <div class="u-skel u-skel-card hero-skeleton"></div>
-{:else if nextEvent}
-  <article class="u-hero next-event">
-    <div class="hero-label">الفعالية القادمة</div>
-    <h2>{nextEvent.title}</h2>
-    <div class="event-meta">
-      <span><Icon icon={Clock} size={15} /> {fmtDate(nextEvent.start_datetime)} · {fmtTime(nextEvent.start_datetime)} <span class="hijri">({hijriDate(nextEvent.start_datetime)})</span></span>
-      {#if nextEvent.location_name}<span><Icon icon={MapPin} size={15} /> {nextEvent.location_name}</span>{/if}
+  {#if loading}
+    <div class="u-skel hero-skel"></div>
+  {:else if nextEvent}
+    <article class="u-hero">
+      <div class="l">الفعالية القادمة · {EVENT_TYPES[nextEvent.type]?.label || nextEvent.type}</div>
+      <div class="big">{nextEvent.title}</div>
+      <div class="u-bar"><i style="width: {countdown.pct}%"></i></div>
+      <div class="meta">
+        <span>{fmtDate(nextEvent.start_datetime)} · {fmtTime(nextEvent.start_datetime)}{nextEvent.location_name ? ' · ' + nextEvent.location_name : ''}</span>
+        <span>{countdownText()}</span>
+      </div>
+    </article>
+  {:else}
+    <div class="u-empty">
+      <EmptyIllustrations kind="calendar" />
+      <h3>لا توجد فعاليات مجدولة</h3>
     </div>
-    <div class="countdown num" aria-label="العد التنازلي">خلال {countdown.d} يوم، {countdown.h} ساعة</div>
-    <span class="event-type"><span class="type-dot"></span>{EVENT_TYPES[nextEvent.type]?.label || nextEvent.type}</span>
-  </article>
-{:else}
-  <div class="u-empty">
-    <EmptyIllustrations kind="calendar" />
-    <h3>لا توجد فعالية مجدولة</h3>
-    <p>سيظهر هنا كل جديد.</p>
-  </div>
-{/if}
+  {/if}
 
-<button class="u-card interactive news-promo-card" onclick={() => route.set('news')}>
-  <div class="news-promo-icon"><Icon icon={Megaphone} size={20} /></div>
-  <div class="news-promo-text">
-    <div class="news-promo-title">الأخبار والإعلانات</div>
-    <div class="news-promo-sub">مستجدات المجموعة، التهاني، والقرارات الرسمية</div>
-  </div>
-  <Icon icon={ChevronLeft} size={17} />
-</button>
-
-<button class="u-card interactive news-promo-card" onclick={() => route.set('suggestions')}>
-  <div class="news-promo-icon sugg-icon"><Icon icon={Lightbulb} size={20} /></div>
-  <div class="news-promo-text">
-    <div class="news-promo-title">اقتراحاتنا</div>
-    <div class="news-promo-sub">شارك أفكارك وصوّت على اقتراحات الأعضاء ومناقشتها</div>
-  </div>
-  <Icon icon={ChevronLeft} size={17} />
-</button>
-
-<button class="u-card interactive news-promo-card" onclick={() => route.set('finance')}>
-  <div class="news-promo-icon finance-icon"><Icon icon={Wallet} size={20} /></div>
-  <div class="news-promo-text">
-    <div class="news-promo-title">المالية والقطات</div>
-    <div class="news-promo-sub">متابعة قطات الاستراحة، الرحلات، ومطالبات الصرف</div>
-  </div>
-  <Icon icon={ChevronLeft} size={17} />
-</button>
-
-<section class="u-card quick-card">
-  <div class="u-card-h">وصول سريع</div>
-  <div class="quick-grid">
-    <button class="quick-action" onclick={() => route.set('events')}>
-      <span class="quick-icon"><Icon icon={CalendarDays} size={19} /></span>
-      <span>الفعاليات</span>
-      <Icon icon={ChevronLeft} size={15} />
+  <div class="u-grid2">
+    <button class="u-btn u-btn-p" style="height:52px" onclick={() => route.set('events')}>
+      <Icon icon={CalendarDays} size={18} /> جدول الفعاليات
     </button>
-    <button class="quick-action" onclick={() => route.set('hosting')}>
-      <span class="quick-icon"><Icon icon={Users} size={19} /></span>
-      <span>المعازيب</span>
-      <Icon icon={ChevronLeft} size={15} />
-    </button>
-    <button class="quick-action" onclick={() => route.set('attendance')}>
-      <span class="quick-icon"><Icon icon={UserCheck} size={19} /></span>
-      <span>الحضور</span>
-      <Icon icon={ChevronLeft} size={15} />
-    </button>
-    <button class="quick-action" onclick={() => route.set('members')}>
-      <span class="quick-icon"><Icon icon={Contact} size={19} /></span>
-      <span>دليل الأعضاء</span>
-      <Icon icon={ChevronLeft} size={15} />
+    <button class="u-btn u-btn-s" style="height:52px" onclick={() => route.set('attendance')}>
+      <Icon icon={UserCheck} size={18} /> رصد الحضور
     </button>
   </div>
-</section>
 
-{#if canSeeReports}
-  <button class="u-card interactive admin-card" onclick={() => route.set('reports')}>
-    <span class="quick-icon"><Icon icon={BarChart3} size={19} /></span>
-    <div class="admin-text">
-      <div class="admin-title">التقارير والإحصائيات</div>
-      <div class="admin-sub">نسب الحضور وأداء الفعاليات والاستضافة</div>
+  {#if upcomingEvents.length > 1}
+    <div class="u-card">
+      <div class="u-card-h">
+        <h2>قادمة قريباً</h2>
+        <button class="u-link" onclick={() => route.set('events')}>الكل</button>
+      </div>
+      <div class="u-list">
+        {#each upcomingEvents.slice(1, 4) as e (e.id)}
+          <div class="u-item tap" onclick={() => route.set('events')}
+            onkeydown={(ev) => ev.key === 'Enter' && route.set('events')}
+            tabindex="0" role="button">
+            <div class="u-rank">{new Date(e.start_datetime).getDate()}</div>
+            <div class="u-grow">
+              <div class="u-name">{e.title}</div>
+              <div class="u-muted">{fmtTime(e.start_datetime)}{e.location_name ? ' · ' + e.location_name : ''}</div>
+            </div>
+            <span class="u-pill {eventPill[e.type] || 'brand'}">{EVENT_TYPES[e.type]?.label || e.type}</span>
+          </div>
+        {/each}
+      </div>
     </div>
-    <Icon icon={ChevronLeft} size={17} />
-  </button>
-{/if}
+  {/if}
+
+  {#if latestNews.length}
+    <div class="u-card">
+      <div class="u-card-h">
+        <h2>آخر الأخبار</h2>
+        <button class="u-link" onclick={() => route.set('news')}>الكل</button>
+      </div>
+      <div class="u-list">
+        {#each latestNews as n (n.id)}
+          <div class="u-item tap" onclick={() => route.set('news')}
+            onkeydown={(ev) => ev.key === 'Enter' && route.set('news')}
+            tabindex="0" role="button">
+            <div class="u-grow">
+              <div class="u-name">{n.title}</div>
+              <div class="u-muted">{timeAgo(n.published_at)}</div>
+            </div>
+            <span class="u-pill {newsCatLabels[n.category]?.pill || 'info'}">
+              {newsCatLabels[n.category]?.label || n.category}
+            </span>
+          </div>
+        {/each}
+      </div>
+    </div>
+  {/if}
+
+  <div class="u-card">
+    <div class="u-card-h"><h2>اختصارات</h2></div>
+    <div class="u-grid2">
+      <button class="u-btn u-btn-g" onclick={() => route.set('hosting')}>
+        <Icon icon={Users} size={17} /> المعازيب
+      </button>
+      <button class="u-btn u-btn-g" onclick={() => route.set('members')}>
+        <Icon icon={Users} size={17} /> الأعضاء
+      </button>
+      <button class="u-btn u-btn-g" onclick={() => route.set('suggestions')}>
+        <Icon icon={Lightbulb} size={17} /> اقتراحاتنا
+      </button>
+      <button class="u-btn u-btn-g" onclick={() => route.set('finance')}>
+        <Icon icon={Wallet} size={17} /> المالية
+      </button>
+      {#if canSeeReports}
+        <button class="u-btn u-btn-g" onclick={() => route.set('reports')}>
+          <Icon icon={BarChart3} size={17} /> التقارير
+        </button>
+      {/if}
+    </div>
+  </div>
+</div>
 
 <style>
   .pinned-strip {
     display: flex;
-    justify-content: space-between;
-    align-items: center;
-    gap: var(--sp-1);
-    background: var(--gold-soft);
-    border: 1px solid var(--gold);
-    color: var(--gold-dark);
-    padding: var(--sp-1) var(--sp-2);
-    border-radius: var(--r-md);
-    margin-bottom: var(--sp-2);
-    font-size: var(--fs-xs);
+    padding: 0;
+    overflow: hidden;
+    align-items: stretch;
   }
-  .pinned-strip-right {
+  .pinned-main {
+    flex: 1;
     display: flex;
     align-items: center;
-    gap: var(--sp-1);
-    flex: 1;
-    min-width: 0;
+    gap: 8px;
+    padding: 10px 14px;
+    background: transparent;
+    border: 0;
+    color: inherit;
+    font: 600 12.5px var(--font-sans);
+    cursor: pointer;
+    text-align: start;
   }
-  .pinned-icon {
-    display: grid;
-    place-items: center;
-    color: var(--gold-dark);
-    flex-shrink: 0;
-  }
-  .pinned-text {
+  .pinned-main span {
     overflow: hidden;
     text-overflow: ellipsis;
     white-space: nowrap;
-    font-weight: var(--fw-semi);
-  }
-  .pinned-strip-left {
-    display: flex;
-    align-items: center;
-    gap: var(--sp-1);
-    flex-shrink: 0;
-  }
-  .pinned-link {
-    background: var(--gold);
-    color: var(--on-gold);
-    border: none;
-    border-radius: var(--r-xs);
-    padding: 2px 8px;
-    font: var(--fw-bold) var(--fs-tiny) var(--font-sans);
-    cursor: pointer;
   }
   .pinned-close {
+    width: 40px;
     background: transparent;
-    border: none;
-    color: var(--gold-dark);
+    border: 0;
+    color: inherit;
     cursor: pointer;
     display: grid;
     place-items: center;
-    padding: 2px;
+    border-inline-start: 1px solid rgba(185, 154, 94, 0.3);
   }
+  .pinned-close:hover { background: rgba(185, 154, 94, 0.15); }
 
-  .news-promo-card {
-    display: flex;
-    align-items: center;
-    gap: var(--sp-2);
-    text-align: start;
-    width: 100%;
-    margin-bottom: var(--sp-2);
-    color: var(--ink2);
-    transition: transform var(--t-fast), box-shadow var(--t-fast), border-color var(--t-fast);
+  .hero-skel {
+    height: 148px;
+    border-radius: 20px;
+    margin-bottom: 12px;
   }
-  .news-promo-card:hover { transform: translateY(-2px); box-shadow: var(--shadow-md); }
-  .news-promo-card:active { transform: scale(0.97); box-shadow: none; }
-  .news-promo-icon {
-    width: var(--touch);
-    height: var(--touch);
-    display: grid;
-    place-items: center;
-    background: var(--brand-soft);
-    color: var(--brand-ink);
-    border-radius: var(--r-xs);
-    flex-shrink: 0;
-  }
-  .sugg-icon {
-    background: var(--warn-soft);
-    color: var(--warn);
-  }
-  .news-promo-text {
-    flex: 1;
-    min-width: 0;
-  }
-  .news-promo-title {
-    font: var(--fw-bold) var(--fs-base) var(--font-sans);
-    color: var(--ink);
-  }
-  .news-promo-sub {
-    font-size: var(--fs-xs);
-    color: var(--ink3);
-    margin-top: 2px;
-  }
-
-  .hero-skeleton { min-height: calc(var(--sp-8) * 3); }
-  .next-event {
-    position: relative;
-    display: flex;
-    flex-direction: column;
-    gap: var(--sp-2);
-    margin-bottom: var(--sp-2);
-    /* Rule 3: brand-colored hero card */
-    background: var(--brand);
-    overflow: hidden;
-  }
-  /* Rule 3: subtle hex pattern overlay */
-  .next-event::before {
-    content: "";
-    position: absolute;
-    inset: 0;
-    z-index: 0;
-    background: var(--brand-soft);
-    clip-path: var(--hex-clip);
-    opacity: 0.08;
-    pointer-events: none;
-  }
-  .next-event > * { position: relative; z-index: 1; }
-  .hero-label {
-    color: color-mix(in oklab, var(--on-brand) 60%, transparent);
-    font: var(--fw-semi) var(--fs-tiny) var(--font-sans);
-    letter-spacing: var(--tracking-wide);
-    text-transform: uppercase;
-  }
-  .next-event h2 { margin: 0; font: var(--fw-bold) var(--fs-2xl)/1.3 var(--font-sans); color: var(--on-brand); }
-  .event-meta { display: flex; flex-wrap: wrap; gap: var(--sp-2); color: color-mix(in oklab, var(--on-brand) 75%, transparent); font-size: var(--fs-sm); }
-  .event-meta span { display: inline-flex; align-items: center; gap: var(--sp-05); }
-  .hijri { color: color-mix(in oklab, var(--on-brand) 55%, transparent); font-size: var(--fs-xs); }
-  .countdown { color: var(--gold-bright); font: var(--fw-semi) var(--fs-sm) var(--font-num); }
-  .event-type { display: inline-flex; align-items: center; gap: var(--sp-1); color: color-mix(in oklab, var(--on-brand) 60%, transparent); font-size: var(--fs-xs); }
-  .type-dot { width: calc(var(--sp-1) - 2px); height: calc(var(--sp-1) - 2px); border-radius: var(--r-pill); background: var(--gold-bright); }
-
-  /* Rule 4: Quick access — 2-column grid */
-  .quick-card { display: flex; flex-direction: column; gap: var(--sp-2); margin-bottom: var(--sp-2); }
-  .quick-grid { display: grid; grid-template-columns: 1fr 1fr; gap: var(--sp-1); }
-  .quick-action {
-    display: flex;
-    flex-direction: column;
-    align-items: center;
-    justify-content: center;
-    gap: var(--sp-1);
-    min-height: 72px;
-    text-align: center;
-    border: 1px solid var(--line);
-    border-radius: var(--r-lg);
-    background: transparent;
-    color: var(--ink);
-    padding: var(--sp-2);
-    font: var(--fw-semi) var(--fs-sm) var(--font-sans);
-  }
-  .quick-action:hover { background: var(--muted-bg); border-color: var(--line2); }
-  .quick-icon { width: var(--sp-6); height: var(--sp-6); display: grid; place-items: center; color: var(--brand); background: var(--brand-soft); border-radius: var(--r-xs); }
-  /* Rule 4: hide chevron icons inside the 2-col quick-action grid */
-  .quick-action > :global(svg:not(.quick-icon svg)) { display: none; }
-
-  .finance-icon { background: var(--gold-soft); color: var(--gold-dark); }
-  .admin-card { display: flex; align-items: center; gap: var(--sp-2); text-align: start; width: 100%; color: var(--ink2); }
-  .admin-text { flex: 1; min-width: 0; }
-  .admin-title { font: var(--fw-bold) var(--fs-base) var(--font-sans); color: var(--ink); }
-  .admin-sub { font-size: var(--fs-xs); color: var(--ink3); margin-top: var(--sp-05); }
 </style>

@@ -1,76 +1,69 @@
 /* =========================================================
    TAWAQ GROUP — DESIGN TOKENS
-   ملف المتغيرات الموحّد لمنصة "مجموعة تواق"
-   مُستوحى من هيكل v6 (ابن كثير) مع هوية تواق الكاملة
+   هيكل v6 (منصة ابن كثير) + ألوان هوية تواق الكاملة
    ========================================================= */
 
-/* --- خطوط Google (preconnect في index.html) --------------- */
 @import url('https://fonts.googleapis.com/css2?family=IBM+Plex+Sans+Arabic:wght@400;500;600;700&family=Tajawal:wght@400;500;700;900&display=swap');
 
-/* =========================================================
-   1) LIGHT MODE (الوضع النهاري)
-   ========================================================= */
 :root {
-  color-scheme: light;
+  /* ---------- الهوية — أخضر تواق + ذهبي ---------- */
+  --brand:        #0E2B22;
+  --brand-2:      #1A4536;
+  --brand-3:      #2E6B52;
+  --brand-ink:    #0E2B22;
+  --brand-soft:   #E8F0EC;
+  --brand-softer: #F2F7F4;
+  --on-brand:     #FFFFFF;
 
-  /* ---------- الهوية — الأخضر التواقي ---------- */
-  --brand:        #0E2B22;   /* الأخضر الأساسي */
-  --brand-2:      #1A4536;   /* أخضر وسط */
-  --brand-3:      #2E6B52;   /* أخضر فاتح للتدرّج */
-  --brand-ink:    #0E2B22;   /* للنص فوق خلفيات soft */
-  --brand-soft:   #E8F0EC;   /* خلفية باهتة */
-  --brand-softer: #F2F7F4;   /* أفتح */
-  --on-brand:     #FFFFFF;   /* النص فوق brand */
+  --gold:         #B99A5E;
+  --gold-soft:    #F0ECE1;
+  --gold-softer:  #FAF8F3;
+  --gold-bright:  #D9C79A;
+  --gold-dark:    #8A6F3F;
+  --on-gold:      #0E2B22;
 
-  /* ---------- الذهبي ---------- */
-  --gold:         #B99A5E;   /* الذهبي الأساسي */
-  --gold-soft:    #F0ECE1;   /* خلفية ذهبية باهتة */
-  --gold-softer:  #FAF8F3;   /* ورقي ذهبي */
-  --gold-bright:  #D9C79A;   /* ذهبي فاتح للتدرّج */
-  --gold-dark:    #8A6F3F;   /* ذهبي داكن للنص */
-  --on-gold:      #0E2B22;   /* النص فوق الذهبي */
-
-  /* ---------- محايد ---------- */
-  --bg:           #F4F3EE;   /* الورقي الأساسي */
-  --bg2:          #ECEAE1;   /* خلفية ثانية */
+  /* ---------- محايد (هيكل ابن كثير v6) ---------- */
+  --bg:           #F4F5F7;
+  --bg2:          #ECEAE1;
   --card:         #FFFFFF;
-  --card2:        #FBFAF6;
+  --card2:        #F8F9FB;
   --muted-bg:     #EEF0F3;
-  --ink:          #1B201C;   /* النص الأساسي */
-  --ink2:         #5B6475;   /* نص ثانوي */
-  --ink3:         #83806E;   /* نص خافت */
-  --line:         #E5E1D3;   /* حدود دافئة */
-  --line2:        #D9DDE4;   /* حدود باردة */
+  --ink:          #0F1B2D;
+  --ink2:         #5B6475;
+  --ink3:         #8F97A6;
+  --line:         #E7E9EE;
+  --line2:        #D9DDE4;
 
-  /* ---------- دلالي (semantic) ---------- */
-  --ok:           #256F53;   --ok-soft:   #E4F4EC;
+  /* ---------- دلالي ---------- */
+  --ok:           #1F8A5B;   --ok-soft:   #E4F4EC;
   --warn:         #B7791F;   --warn-soft: #FBF1DE;
-  --bad:          #B23B3B;   --bad-soft:  #FBE9E7;
+  --bad:          #C0443C;   --bad-soft:  #FBE9E7;
   --info:         #3657B8;   --info-soft: #EEF3FF;
 
   /* ---------- ظلال ---------- */
-  --shadow:       0 1px 2px rgba(14,43,34,.05);
-  --shadow-md:    0 4px 14px rgba(14,43,34,.08);
-  --shadow-lg:    0 12px 32px rgba(14,43,34,.14);
-  --shadow-glow:  0 0 0 3px rgba(185,154,94,.28);   /* ذهبي شفاف */
+  --shadow:       0 1px 2px rgba(15, 27, 45, 0.04);
+  --shadow-md:    0 4px 14px rgba(15, 27, 45, 0.08);
+  --shadow-lg:    0 12px 32px rgba(15, 27, 45, 0.14);
   --shadow-focus: 0 0 0 3px var(--brand-soft);
 
   /* ---------- Overlays ---------- */
-  --overlay:      rgba(14,43,34,.45);
-  --overlay-strong: rgba(14,43,34,.65);
-  --scrim:        rgba(27,32,28,.55);
+  --overlay:        rgba(15, 27, 45, 0.45);
+  --overlay-strong: rgba(15, 27, 45, 0.65);
+  --scrim:          rgba(15, 27, 45, 0.55);
 
-  /* ---------- Radii ---------- */
+  color-scheme: light;
+
+  /* ---------- Radii (ابن كثير v6) ---------- */
   --r-xs:   8px;
-  --r-sm:   11px;    /* chips صغيرة */
-  --r-md:   14px;    /* أزرار قياسية */
-  --r-lg:   16px;    /* stat cards */
-  --r-xl:   18px;    /* بطاقات رئيسية */
-  --r-2xl:  20px;    /* hero cards */
-  --r-3xl:  22px;    /* sheets (أعلى فقط) */
-  --r-pill: 999px;   /* pills كاملة */
+  --r-sm:   11px;
+  --r-md:   14px;
+  --r-lg:   16px;
+  --r-xl:   18px;
+  --r-2xl:  20px;
+  --r-3xl:  22px;
+  --r-pill: 999px;
 
-  /* ---------- Spacing scale (8px rhythm, 4px modular) ---------- */
+  /* ---------- Spacing ---------- */
   --sp-05:  4px;
   --sp-1:   8px;
   --sp-2:   12px;
@@ -78,22 +71,21 @@
   --sp-4:   20px;
   --sp-5:   24px;
   --sp-6:   32px;
-  --sp-7:   40px;
   --sp-8:   56px;
 
-  /* ---------- Typography ---------- */
+  /* ---------- Typography (ابن كثير v6) ---------- */
   --font-sans: "IBM Plex Sans Arabic", "Tajawal", system-ui, -apple-system, "Segoe UI", sans-serif;
   --font-num:  "IBM Plex Sans Arabic", "Tajawal", system-ui, sans-serif;
 
   --fs-tiny:   11px;
-  --fs-xs:     12.5px;
-  --fs-sm:     13.5px;
-  --fs-base:   14.5px;    /* body */
-  --fs-md:     15px;      /* h3 */
+  --fs-xs:     12px;
+  --fs-sm:     13px;
+  --fs-base:   14px;
+  --fs-md:     15px;      /* h2/h3 بطاقات */
   --fs-lg:     16px;      /* inputs mobile */
-  --fs-xl:     18px;      /* h2 */
-  --fs-2xl:    22px;      /* h1 */
-  --fs-3xl:    26px;      /* hero */
+  --fs-xl:     18px;
+  --fs-2xl:    22px;      /* top h1 */
+  --fs-3xl:    28px;      /* hero big */
 
   --lh-tight:   1.2;
   --lh-snug:    1.35;
@@ -128,12 +120,12 @@
   --z-popover:   130;
   --z-tooltip:   140;
 
-  /* ---------- حدود ونسب خاصة ---------- */
+  /* ---------- أبعاد ثابتة ---------- */
   --border-w:    1px;
-  --maxw-screen: 760px;      /* mobile-first container */
+  --maxw-screen: 880px;
   --header-h:    56px;
   --nav-h:       64px;
-  --touch:       44px;        /* الحد الأدنى للمس */
+  --touch:       44px;
   --input-h:     46px;
   --btn-h:       44px;
   --btn-h-sm:    36px;
@@ -149,125 +141,48 @@
 }
 
 /* =========================================================
-   2) DARK MODE (الوضع الليلي)
+   DARK MODE (ابن كثير v6 — بألوان تواق)
    ========================================================= */
 html.dark {
   color-scheme: dark;
 
-  /* ---------- الهوية — أخضر مُضاء ---------- */
   --brand:        #2E6B52;
   --brand-2:      #1A4536;
   --brand-3:      #3F8A6B;
   --brand-ink:    #B4D9C9;
   --brand-soft:   #16302A;
   --brand-softer: #0F221E;
-  --on-brand:     #F4F3EE;
+  --on-brand:     #FFFFFF;
 
-  /* ---------- الذهبي ---------- */
-  --gold:         #D9C79A;
-  --gold-soft:    #2A2416;
+  --gold:         #E3C170;
+  --gold-soft:    #2E2715;
   --gold-softer:  #1E1A10;
-  --gold-bright:  #F0DCA8;
+  --gold-bright:  #E3C170;
   --gold-dark:    #B99A5E;
   --on-gold:      #0E1715;
 
-  /* ---------- محايد ---------- */
-  --bg:           #0B1512;
-  --bg2:          #0E1A16;
-  --card:         #13211C;
-  --card2:        #182820;
-  --muted-bg:     #1B2A24;
-  --ink:          #ECEEE9;
-  --ink2:         #A7B2AC;
-  --ink3:         #7E8781;
-  --line:         #243830;
-  --line2:        #2D4038;
+  --bg:           #0B1220;
+  --bg2:          #0E1A28;
+  --card:         #131C2E;
+  --card2:        #172236;
+  --muted-bg:     #1C2840;
+  --ink:          #E8EDF5;
+  --ink2:         #A5B0C2;
+  --ink3:         #9AA6BA;
+  --line:         #243049;
+  --line2:        #2E3B57;
 
-  /* ---------- دلالي ---------- */
-  --ok:           #4CC38A;   --ok-soft:   #0F2A20;
-  --warn:         #E8B454;   --warn-soft: #2A200F;
-  --bad:          #F07A71;   --bad-soft:  #2A1515;
-  --info:         #7FA1F0;   --info-soft: #121E36;
+  --ok:           #4CC38A;   --ok-soft:   #133226;
+  --warn:         #E5A84B;   --warn-soft: #33260F;
+  --bad:          #F07A71;   --bad-soft:  #3A1A1A;
+  --info:         #8EA8F5;   --info-soft: #1B2645;
 
-  /* ---------- ظلال ---------- */
-  --shadow:       0 1px 2px rgba(0,0,0,.35);
-  --shadow-md:    0 4px 14px rgba(0,0,0,.45);
-  --shadow-lg:    0 12px 32px rgba(0,0,0,.55);
-  --shadow-glow:  0 0 0 3px rgba(217,199,154,.32);
-  --shadow-focus: 0 0 0 3px rgba(180,217,201,.22);
+  --shadow:       0 1px 2px rgba(0, 0, 0, 0.3);
+  --shadow-md:    0 4px 14px rgba(0, 0, 0, 0.4);
+  --shadow-lg:    0 12px 32px rgba(0, 0, 0, 0.5);
+  --shadow-focus: 0 0 0 3px var(--brand-soft);
 
-  --overlay:      rgba(0,0,0,.60);
-  --overlay-strong: rgba(0,0,0,.78);
-  --scrim:        rgba(0,0,0,.65);
-}
-
-/* =========================================================
-   3) BASE: body / HTML / scrollbars
-   ========================================================= */
-html, body {
-  margin: 0;
-  padding: 0;
-  background: var(--bg);
-  color: var(--ink);
-  font-family: var(--font-sans);
-  font-size: var(--fs-base);
-  line-height: var(--lh-base);
-  direction: rtl;
-  -webkit-text-size-adjust: 100%;
-  -webkit-font-smoothing: antialiased;
-  -moz-osx-font-smoothing: grayscale;
-}
-
-* { box-sizing: border-box; }
-
-::selection {
-  background: var(--brand-soft);
-  color: var(--brand-ink);
-}
-
-/* سكرول نحيف */
-::-webkit-scrollbar { width: 8px; height: 8px; }
-::-webkit-scrollbar-thumb {
-  background: var(--line2);
-  border-radius: var(--r-pill);
-}
-::-webkit-scrollbar-thumb:hover { background: var(--ink3); }
-
-/* الأرقام جدولية افتراضياً */
-.num, [data-num], time { font-variant-numeric: tabular-nums; }
-
-/* =========================================================
-   4) UTILITIES الأساسية (لعدم تكرار الكتابة)
-   ========================================================= */
-.u-container {
-  width: 100%;
-  max-width: var(--maxw-screen);
-  margin-inline: auto;
-  padding-inline: var(--sp-3);
-}
-
-.u-focus:focus-visible {
-  outline: 2px solid var(--brand-ink);
-  outline-offset: 2px;
-}
-
-@media (prefers-reduced-motion: reduce) {
-  * {
-    animation-duration: 0.01ms !important;
-    animation-iteration-count: 1 !important;
-    transition-duration: 0.01ms !important;
-  }
-}
-
-/* =========================================================
-   5) ARABIC/RTL BEHAVIOR
-   ========================================================= */
-body, input, textarea, select, button {
-  word-break: keep-all;
-  line-break: anywhere;
-}
-
-/* منع zoom على iOS Safari */
-@media (max-width: 767px) {
-  input, select, textarea { font-size: 16px !important; }
+  --overlay:        rgba(0, 0, 0, 0.6);
+  --overlay-strong: rgba(0, 0, 0, 0.75);
+  --scrim:          rgba(0, 0, 0, 0.65);
 }

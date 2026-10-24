@@ -4,7 +4,6 @@
     Bell,
     Briefcase,
     Calendar,
-    CircleUserRound,
     Edit3,
     LogOut,
     MapPin,
@@ -16,10 +15,10 @@
   import { supabase } from '../supabase';
   import { session, profile, roles, route, isAdmin } from '../stores';
   import { getPushStatus, subscribeToPush, unsubscribeFromPush, type PushStatus } from '../push';
-  import PageHead from '../components/PageHead.svelte';
   import Icon from '../components/Icon.svelte';
   import Avatar from '../components/Avatar.svelte';
   import ProfileEditModal from '../components/ProfileEditModal.svelte';
+  import { confirmDialog } from '../toast';
 
   let pushStatus = $state<PushStatus>('not-subscribed');
   let pushBusy = $state(true);
@@ -45,7 +44,13 @@
   };
 
   async function logout() {
-    if (!confirm('تسجيل الخروج؟')) return;
+    const ok = await confirmDialog({
+      title: 'تسجيل الخروج',
+      message: 'سيتم إنهاء جلستك على هذا الجهاز.',
+      confirmLabel: 'خروج',
+      danger: true
+    });
+    if (!ok) return;
     await supabase.auth.signOut();
   }
 
@@ -79,7 +84,18 @@
   });
 </script>
 
-<PageHead icon={CircleUserRound} title="حسابي" subtitle="بيانات العضوية وتفضيلات هذا الجهاز" />
+<div class="u-page">
+  <div class="u-top">
+    <div>
+      <div class="u-sub">بيانات العضوية والإشعارات</div>
+      <h1>حسابي</h1>
+    </div>
+    <div class="u-actions">
+      <button class="u-btn u-btn-secondary sm" onclick={() => (showEditModal = true)}>
+        <Icon icon={Edit3} size={14} /> تعديل
+      </button>
+    </div>
+  </div>
 
 <article class="profile-card">
   <div class="avatar-wrap">
@@ -131,12 +147,6 @@
     {/if}
   </div>
 
-  <div class="profile-actions">
-    <button class="u-btn u-btn-primary sm" onclick={() => (showEditModal = true)}>
-      <Icon icon={Edit3} size={15} />
-      <span>تعديل الملف الشخصي</span>
-    </button>
-  </div>
 </article>
 
 {#if $isAdmin}
@@ -206,9 +216,10 @@
   {/if}
 </section>
 
-<button class="u-btn u-btn-ghost block logout-btn" onclick={logout}>
-  <Icon icon={LogOut} size={16} /> تسجيل الخروج
-</button>
+  <button class="u-btn u-btn-ghost w logout-btn" onclick={logout}>
+    <Icon icon={LogOut} size={16} /> تسجيل الخروج
+  </button>
+</div>
 
 {#if showEditModal}
   <ProfileEditModal
@@ -278,10 +289,6 @@
     flex-wrap: wrap;
     margin-top: var(--sp-1);
   }
-  .profile-actions {
-    margin-top: var(--sp-2);
-  }
-
   .admin-card, .nav-card {
     display: flex;
     align-items: center;

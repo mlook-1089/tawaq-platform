@@ -3,6 +3,7 @@
   import { supabase } from '../supabase';
   import { canWriteNews } from '../stores';
   import { fmtDate, hijriDate } from '../utils';
+  import { confirmDialog, toastErr, toastOk } from '../toast';
   import Icon from '../components/Icon.svelte';
   import Avatar from '../components/Avatar.svelte';
   import CommentThread from '../components/CommentThread.svelte';
@@ -29,14 +30,21 @@
   const cat = $derived(categoryConfig[item.category] || { label: item.category, pill: '' });
 
   async function handleDelete() {
-    if (!confirm('هل أنت متأكد من حذف هذا الخبر؟')) return;
+    const ok = await confirmDialog({
+      title: 'حذف الخبر',
+      message: `هل أنت متأكد من حذف "${item.title}"؟`,
+      confirmLabel: 'حذف',
+      danger: true
+    });
+    if (!ok) return;
     const { error: err } = await supabase
       .from('news')
       .update({ deleted_at: new Date().toISOString() })
       .eq('id', item.id);
     if (err) {
-      alert(err.message);
+      toastErr(err.message);
     } else {
+      toastOk('تم حذف الخبر');
       ondeleted();
     }
   }

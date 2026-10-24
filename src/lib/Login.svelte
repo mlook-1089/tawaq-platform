@@ -1,11 +1,12 @@
 <script lang="ts">
-  import { ArrowLeft, KeyRound, LogIn, Mail } from 'lucide-svelte';
+  import { ArrowLeft, Eye, EyeOff, LogIn, Mail } from 'lucide-svelte';
   import { supabase } from './supabase';
   import HexLogo from './components/HexLogo.svelte';
   import Icon from './components/Icon.svelte';
 
   let email = $state('');
   let password = $state('');
+  let showPassword = $state(false);
   let loading = $state(false);
   let error = $state('');
   let info = $state('');
@@ -70,8 +71,24 @@
               </button>
             {/if}
           </div>
-          <input id="password" class="u-input" type="password" bind:value={password} required
-            autocomplete={mode === 'signin' ? 'current-password' : 'new-password'} />
+          <div class="password-wrap">
+            <input
+              id="password"
+              class="u-input"
+              type={showPassword ? 'text' : 'password'}
+              bind:value={password}
+              required
+              autocomplete={mode === 'signin' ? 'current-password' : 'new-password'}
+            />
+            <button
+              type="button"
+              class="pw-toggle"
+              onclick={() => (showPassword = !showPassword)}
+              aria-label={showPassword ? 'إخفاء كلمة المرور' : 'إظهار كلمة المرور'}
+            >
+              <Icon icon={showPassword ? EyeOff : Eye} size={18} />
+            </button>
+          </div>
         </div>
       {/if}
 
@@ -155,6 +172,28 @@
     justify-content: space-between;
     align-items: center;
   }
+  .password-wrap {
+    position: relative;
+  }
+  .password-wrap :global(input) {
+    padding-inline-end: 44px;
+  }
+  .pw-toggle {
+    position: absolute;
+    inset-block: 0;
+    inset-inline-end: 4px;
+    width: 40px;
+    display: grid;
+    place-items: center;
+    background: transparent;
+    border: none;
+    color: var(--ink3);
+    cursor: pointer;
+    border-radius: var(--r-xs);
+  }
+  .pw-toggle:hover { color: var(--ink); }
+  .pw-toggle:focus-visible { outline: 2px solid var(--brand-ink); outline-offset: 2px; }
+
   .forgot-link {
     background: none;
     border: none;

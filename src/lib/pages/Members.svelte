@@ -1,18 +1,12 @@
 <script lang="ts">
   import { onMount } from 'svelte';
   import {
-    Contact,
     MessageCircle,
     Phone,
     Search,
-    Shield,
-    ShieldCheck,
-    User,
-    Users,
     X
   } from 'lucide-svelte';
   import { supabase } from '../supabase';
-  import PageHead from '../components/PageHead.svelte';
   import Icon from '../components/Icon.svelte';
   import Avatar from '../components/Avatar.svelte';
   import EmptyIllustrations from '../components/EmptyIllustrations.svelte';
@@ -166,20 +160,19 @@
   });
 </script>
 
-<PageHead
-  icon={Contact}
-  title="دليل الأعضاء"
-  subtitle={`أعضاء مجموعة تواق (${members.length})`}
-/>
+<div class="u-page">
+  <div class="u-top">
+    <div>
+      <div class="u-sub">{members.length} عضو</div>
+      <h1>دليل الأعضاء</h1>
+    </div>
+  </div>
 
-<!-- Search Bar -->
-<div class="search-box">
-  <div class="search-input-wrap">
-    <span class="search-icon"><Icon icon={Search} size={18} /></span>
+  <div class="u-search">
+    <Icon icon={Search} size={18} />
     <input
       type="search"
-      class="u-input search-input"
-      placeholder="ابحث بالاسم، اسم المستخدم، أو النبذة…"
+      placeholder="ابحث بالاسم أو النبذة…"
       value={searchQuery}
       oninput={handleSearchInput}
     />
@@ -193,17 +186,14 @@
       </button>
     {/if}
   </div>
-</div>
 
-<!-- Filter chips -->
-<div class="filters">
   <div class="u-chips">
     <button
       class="u-chip"
       class:on={selectedRole === 'all'}
       onclick={() => (selectedRole = 'all')}
     >
-      الكل ({members.length})
+      الكل <span class="chip-count">{members.length}</span>
     </button>
     {#each availableRoles as role (role)}
       <button
@@ -211,86 +201,82 @@
         class:on={selectedRole === role}
         onclick={() => (selectedRole = role)}
       >
-        {roleLabels[role] || role} ({roleCounts[role] || 0})
+        {roleLabels[role] || role} <span class="chip-count">{roleCounts[role] || 0}</span>
       </button>
     {/each}
   </div>
-</div>
 
-{#if loading}
-  <div class="members-grid">
-    {#each Array(6) as _}
-      <div class="u-skel member-card-skel"></div>
-    {/each}
-  </div>
-{:else if error}
-  <div class="u-alert err">{error}</div>
-{:else if filteredMembers.length === 0}
-  <div class="u-empty">
-    <EmptyIllustrations kind="generic" />
-    <h3>لا يوجد أعضاء مطابقون</h3>
-    <p>جرّب تغيير كلمات البحث أو تصفية الأدوار.</p>
-  </div>
-{:else}
-  <div class="members-grid">
-    {#each filteredMembers as member (member.id)}
-      <div
-        class="u-card interactive member-card"
-        onclick={() => (selectedMember = member)}
-        onkeydown={(e) => e.key === 'Enter' && (selectedMember = member)}
-        tabindex="0"
-        role="button"
-      >
-        <div class="card-avatar">
-          <Avatar
-            url={member.avatar_url}
-            name={member.full_name}
-            hex={true}
-            size="lg"
-            featured={member.primary_role === 'super_admin'}
-          />
-        </div>
-
-        <div class="card-info">
-          <div class="member-name">{member.full_name}</div>
-          <div class="badge-line">
-            <span class="u-role-badge {member.primary_role === 'super_admin' ? 'admin' : member.primary_role.startsWith('mod_') ? 'founder' : 'member'}">
-              {roleLabels[member.primary_role] || member.primary_role}
-            </span>
+  {#if loading}
+    <section class="u-card flush">
+      <div class="u-list">
+        {#each Array(6) as _}
+          <div class="u-item">
+            <div class="u-skel skel-avatar"></div>
+            <div class="u-grow"><div class="u-skel skel-line"></div></div>
           </div>
-          {#if member.region || member.profession}
-            <div class="member-meta">
-              {member.region || member.profession}
-            </div>
-          {/if}
-        </div>
-
-        <div class="card-actions" onclick={(e) => e.stopPropagation()} role="presentation">
-          {#if member.phone}
-            <a
-              href={formatWaLink(member.phone)}
-              target="_blank"
-              rel="noopener noreferrer"
-              class="u-btn-icon wa-btn"
-              title="واتساب"
-              aria-label="واتساب"
-            >
-              <Icon icon={MessageCircle} size={16} />
-            </a>
-            <a
-              href={`tel:${member.phone}`}
-              class="u-btn-icon call-btn"
-              title="اتصال"
-              aria-label="اتصال"
-            >
-              <Icon icon={Phone} size={16} />
-            </a>
-          {/if}
-        </div>
+        {/each}
       </div>
-    {/each}
-  </div>
-{/if}
+    </section>
+  {:else if error}
+    <div class="u-alert err">{error}</div>
+  {:else if filteredMembers.length === 0}
+    <div class="u-empty">
+      <EmptyIllustrations kind="generic" />
+      <h3>لا يوجد أعضاء مطابقون</h3>
+      <p>جرّب تغيير كلمات البحث أو تصفية الأدوار.</p>
+    </div>
+  {:else}
+    <section class="u-card flush">
+      <div class="u-list">
+        {#each filteredMembers as member (member.id)}
+          <div
+            class="u-item tap member-row"
+            onclick={() => (selectedMember = member)}
+            onkeydown={(e) => e.key === 'Enter' && (selectedMember = member)}
+            tabindex="0" role="button"
+          >
+            <Avatar
+              url={member.avatar_url}
+              name={member.full_name}
+              hex={true}
+              size="sm"
+              featured={member.primary_role === 'super_admin'}
+            />
+            <div class="u-grow">
+              <div class="u-name">{member.full_name}</div>
+              <div class="u-muted">
+                {roleLabels[member.primary_role] || member.primary_role}
+                {#if member.region}· {member.region}{/if}
+              </div>
+            </div>
+            <div class="row-actions" onclick={(e) => e.stopPropagation()} role="presentation">
+              {#if member.phone}
+                <a
+                  href={formatWaLink(member.phone)}
+                  target="_blank"
+                  rel="noopener noreferrer"
+                  class="u-btn-icon wa-btn"
+                  title="واتساب"
+                  aria-label="واتساب"
+                >
+                  <Icon icon={MessageCircle} size={16} />
+                </a>
+                <a
+                  href={`tel:${member.phone}`}
+                  class="u-btn-icon call-btn"
+                  title="اتصال"
+                  aria-label="اتصال"
+                >
+                  <Icon icon={Phone} size={16} />
+                </a>
+              {/if}
+            </div>
+          </div>
+        {/each}
+      </div>
+    </section>
+  {/if}
+</div>
 
 {#if selectedMember}
   <MemberDetail
@@ -301,129 +287,74 @@
 {/if}
 
 <style>
-  .search-box {
-    margin-bottom: var(--sp-2);
-  }
-  .search-input-wrap {
-    position: relative;
+  .u-search {
     display: flex;
     align-items: center;
-  }
-  .search-icon {
-    position: absolute;
-    right: var(--sp-2);
+    gap: var(--sp-1);
+    height: 46px;
+    border-radius: var(--r-md);
+    background: var(--card);
+    border: 1px solid var(--line);
+    padding: 0 var(--sp-2);
     color: var(--ink3);
-    pointer-events: none;
-    display: grid;
-    place-items: center;
+    margin-bottom: var(--sp-2);
   }
-  .search-input {
-    padding-inline-start: calc(var(--sp-5) + var(--sp-1));
-    padding-inline-end: var(--sp-5);
+  .u-search input {
+    flex: 1;
+    border: 0;
+    outline: 0;
+    background: transparent;
+    color: var(--ink);
+    font-family: inherit;
+    font-size: 16px;
+    min-width: 0;
   }
   .clear-search {
-    position: absolute;
-    left: var(--sp-2);
     background: transparent;
     border: none;
     color: var(--ink3);
     cursor: pointer;
     display: grid;
     place-items: center;
-    padding: var(--sp-05);
+    padding: 4px;
   }
-  .clear-search:hover {
-    color: var(--ink);
-  }
+  .clear-search:hover { color: var(--ink); }
 
-  .filters {
-    margin-bottom: var(--sp-3);
-  }
-
-  .members-grid {
-    display: grid;
-    grid-template-columns: 1fr;
-    gap: var(--sp-2);
-  }
-
-  @media (min-width: 480px) {
-    .members-grid {
-      grid-template-columns: repeat(2, 1fr);
-    }
-  }
-
-  @media (min-width: 768px) {
-    .members-grid {
-      grid-template-columns: repeat(3, 1fr);
-    }
-  }
-
-  .member-card {
-    display: flex;
-    flex-direction: column;
+  .chip-count {
+    display: inline-flex;
     align-items: center;
-    text-align: center;
-    padding: var(--sp-3);
-    position: relative;
-    gap: var(--sp-1);
-  }
-
-  .card-avatar {
-    margin-bottom: var(--sp-1);
-    display: flex;
     justify-content: center;
+    min-width: 20px;
+    padding: 0 6px;
+    height: 18px;
+    background: var(--muted-bg);
+    color: var(--ink2);
+    border-radius: var(--r-pill);
+    font: var(--fw-bold) 10.5px var(--font-sans);
+    font-variant-numeric: tabular-nums;
+    margin-inline-start: 4px;
+  }
+  :global(.u-chip.on) .chip-count {
+    background: color-mix(in oklab, var(--bg) 25%, transparent);
+    color: var(--bg);
   }
 
-  .card-info {
-    flex: 1;
+  .member-row { padding: 10px 0; gap: var(--sp-2); }
+  .row-actions {
     display: flex;
-    flex-direction: column;
-    align-items: center;
-    gap: 4px;
-    width: 100%;
+    gap: var(--sp-05);
+    flex-shrink: 0;
   }
-
-  .member-name {
-    font: var(--fw-bold) var(--fs-base) var(--font-sans);
-    color: var(--ink);
-    line-height: var(--lh-tight);
-    overflow: hidden;
-    text-overflow: ellipsis;
-    white-space: nowrap;
-    max-width: 100%;
-  }
-
-  .badge-line {
-    margin-top: 2px;
-  }
-
-  .member-meta {
-    font-size: var(--fs-xs);
-    color: var(--ink3);
-    margin-top: 2px;
-  }
-
-  .card-actions {
-    display: flex;
-    gap: var(--sp-1);
-    margin-top: var(--sp-2);
-    justify-content: center;
-  }
-
   .wa-btn:hover {
     background: var(--ok-soft);
     color: var(--ok);
     border-color: var(--ok-soft);
   }
-
   .call-btn:hover {
     background: var(--brand-soft);
     color: var(--brand-ink);
     border-color: var(--brand-soft);
   }
-
-  .member-card-skel {
-    height: 200px;
-    border-radius: var(--r-xl);
-  }
+  .skel-avatar { width: 40px; height: 40px; border-radius: 50%; flex-shrink: 0; }
+  .skel-line { height: 14px; width: 60%; }
 </style>

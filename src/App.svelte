@@ -7,6 +7,7 @@
   import Shell from './lib/Shell.svelte';
   import Icon from './lib/components/Icon.svelte';
   import PasswordResetModal from './lib/components/PasswordResetModal.svelte';
+  import ToastHost from './lib/components/ToastHost.svelte';
 
   let loading = $state(true);
   let showPasswordReset = $state(false);
@@ -54,3 +55,5 @@
     <PasswordResetModal onclose={() => (showPasswordReset = false)} />
   {/if}
 {/if}
+
+<ToastHost />

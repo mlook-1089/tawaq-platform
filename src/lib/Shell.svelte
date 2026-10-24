@@ -17,32 +17,30 @@
 
 <div class="u-shell">
   <TopBar />
-  <main class="u-page">
-    <div class="page-view" data-route={$route}>
-      {#if $route === 'home'}
-        <Home />
-      {:else if $route === 'events'}
-        <Events />
-      {:else if $route === 'hosting'}
-        <Hosting />
-      {:else if $route === 'attendance'}
-        <Attendance />
-      {:else if $route === 'members'}
-        <Members />
-      {:else if $route === 'admin'}
-        <Admin />
-      {:else if $route === 'news'}
-        <News />
-      {:else if $route === 'finance'}
-        <Finance />
-      {:else if $route === 'suggestions'}
-        <Suggestions />
-      {:else if $route === 'reports'}
-        <Reports />
-      {:else if $route === 'account'}
-        <Account />
-      {/if}
-    </div>
+  <main class="u-main" data-route={$route}>
+    {#if $route === 'home'}
+      <Home />
+    {:else if $route === 'events'}
+      <Events />
+    {:else if $route === 'hosting'}
+      <Hosting />
+    {:else if $route === 'attendance'}
+      <Attendance />
+    {:else if $route === 'members'}
+      <Members />
+    {:else if $route === 'admin'}
+      <Admin />
+    {:else if $route === 'news'}
+      <News />
+    {:else if $route === 'finance'}
+      <Finance />
+    {:else if $route === 'suggestions'}
+      <Suggestions />
+    {:else if $route === 'reports'}
+      <Reports />
+    {:else if $route === 'account'}
+      <Account />
+    {/if}
   </main>
   <BottomNav />
 </div>

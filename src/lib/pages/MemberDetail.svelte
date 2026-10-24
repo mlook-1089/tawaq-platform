@@ -17,6 +17,7 @@
   } from 'lucide-svelte';
   import { supabase } from '../supabase';
   import { isAdmin } from '../stores';
+  import { confirmDialog, toastErr, toastOk } from '../toast';
   import Icon from '../components/Icon.svelte';
   import Avatar from '../components/Avatar.svelte';
 
@@ -68,7 +69,13 @@
     if (statusBusy) return;
     const newStatus = member.status === 'active' ? 'inactive' : 'active';
     const actionLabel = newStatus === 'active' ? 'تنشيط الحساب' : 'إيقاف الحساب';
-    if (!confirm(`هل أنت متأكد من ${actionLabel} لـ ${member.full_name}؟`)) return;
+    const ok = await confirmDialog({
+      title: actionLabel,
+      message: `هل أنت متأكد من ${actionLabel} لـ ${member.full_name}؟`,
+      confirmLabel: newStatus === 'active' ? 'تنشيط' : 'إيقاف',
+      danger: newStatus === 'inactive'
+    });
+    if (!ok) return;
 
     statusBusy = true;
     error = '';
@@ -79,9 +86,11 @@
         .eq('id', member.id);
       if (err) throw err;
       member.status = newStatus;
+      toastOk(`تم ${newStatus === 'active' ? 'تنشيط' : 'إيقاف'} الحساب`);
       onupdate();
     } catch (e: any) {
       error = e.message || 'تعذّر تحديث الحالة';
+      toastErr(error);
     } finally {
       statusBusy = false;
     }

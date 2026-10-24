@@ -1,31 +1,24 @@
 <script lang="ts">
   import { onMount } from 'svelte';
   import {
-    Activity,
-    Check,
     KeyRound,
-    Mail,
     MoreHorizontal,
     Plus,
     RefreshCw,
     Search,
     Shield,
-    ShieldAlert,
-    ShieldCheck,
     Trash2,
     UserCheck,
-    Users,
-    UserX,
-    X
+    UserX
   } from 'lucide-svelte';
   import { supabase } from '../supabase';
   import { session, profile, roles, route } from '../stores';
-  import PageHead from '../components/PageHead.svelte';
   import Icon from '../components/Icon.svelte';
   import Avatar from '../components/Avatar.svelte';
   import EmptyIllustrations from '../components/EmptyIllustrations.svelte';
   import RoleEditModal from './RoleEditModal.svelte';
   import InviteUserModal from './InviteUserModal.svelte';
+  import { confirmDialog, toastErr, toastOk, toastWarn } from '../toast';
 
   // Access check
   $effect(() => {
@@ -111,7 +104,13 @@
   async function toggleUserStatus(u: UserItem) {
     const newStatus = u.status === 'active' ? 'inactive' : 'active';
     const actionLabel = newStatus === 'active' ? 'تنشيط' : 'إيقاف';
-    if (!confirm(`هل أنت متأكد من ${actionLabel} حساب ${u.full_name}؟`)) return;
+    const ok = await confirmDialog({
+      title: `${actionLabel} الحساب`,
+      message: `هل أنت متأكد من ${actionLabel} حساب ${u.full_name}؟`,
+      confirmLabel: actionLabel,
+      danger: newStatus === 'inactive'
+    });
+    if (!ok) return;
 
     openMenuUserId = null;
     try {
@@ -120,20 +119,24 @@
         .update({ status: newStatus })
         .eq('id', u.id);
       if (err) throw err;
-      successMsg = `تم ${actionLabel} الحساب بنجاح.`;
-      setTimeout(() => (successMsg = ''), 3000);
+      toastOk(`تم ${actionLabel} الحساب`);
       await loadData();
     } catch (e: any) {
-      error = e.message || 'تعذّر تحديث الحالة';
+      toastErr(e.message || 'تعذّر تحديث الحالة');
     }
   }
 
   async function resetUserPassword(u: UserItem) {
     if (!u.email) {
-      alert('لا يوجد بريد إلكتروني مسجل لهذا العضو.');
+      toastWarn('لا يوجد بريد إلكتروني مسجل لهذا العضو.');
       return;
     }
-    if (!confirm(`إرسال بريد استعادة كلمة المرور إلى ${u.email}؟`)) return;
+    const ok = await confirmDialog({
+      title: 'استعادة كلمة المرور',
+      message: `إرسال رابط الاستعادة إلى ${u.email}؟`,
+      confirmLabel: 'إرسال'
+    });
+    if (!ok) return;
 
     openMenuUserId = null;
     try {
@@ -141,15 +144,20 @@
         redirectTo: window.location.origin + '/tawaq-platform/'
       });
       if (err) throw err;
-      successMsg = `تم إرسال رابط إعادة تعيين كلمة السر إلى ${u.email}`;
-      setTimeout(() => (successMsg = ''), 4000);
+      toastOk(`تم إرسال الرابط إلى ${u.email}`);
     } catch (e: any) {
-      error = e.message || 'تعذّر إرسال البريد';
+      toastErr(e.message || 'تعذّر إرسال البريد');
     }
   }
 
   async function softDeleteUser(u: UserItem) {
-    if (!confirm(`هل أنت متأكد تماماً من حذف العضو ${u.full_name}؟`)) return;
+    const ok = await confirmDialog({
+      title: 'حذف العضو',
+      message: `هل أنت متأكد تماماً من حذف ${u.full_name}؟ لا يمكن التراجع عن هذه العملية بسهولة.`,
+      confirmLabel: 'حذف',
+      danger: true
+    });
+    if (!ok) return;
 
     openMenuUserId = null;
     try {
@@ -158,11 +166,10 @@
         .update({ deleted_at: new Date().toISOString() })
         .eq('id', u.id);
       if (err) throw err;
-      successMsg = `تم حذف العضو بنجاح.`;
-      setTimeout(() => (successMsg = ''), 3000);
+      toastOk('تم حذف العضو');
       await loadData();
     } catch (e: any) {
-      error = e.message || 'تعذّر حذف العضو';
+      toastErr(e.message || 'تعذّر حذف العضو');
     }
   }
 
@@ -202,24 +209,42 @@
   });
 </script>
 
-<PageHead
-  icon={ShieldCheck}
-  title="لوحة الإدارة"
-  subtitle="إدارة الأعضاء، الأدوار، ومتابعة صحة المنصة"
->
-  {#snippet action()}
-    <button class="u-btn u-btn-primary sm" onclick={() => (showInviteModal = true)}>
-      <Icon icon={Plus} size={15} />
-      <span>إضافة عضو</span>
-    </button>
-  {/snippet}
-</PageHead>
+<div class="u-page">
+  <div class="u-top">
+    <div>
+      <div class="u-sub">إدارة الأعضاء وصحة المنصة</div>
+      <h1>لوحة الإدارة</h1>
+    </div>
+    <div class="u-actions">
+      <button class="u-btn u-btn-primary sm" onclick={() => (showInviteModal = true)}>
+        <Icon icon={Plus} size={15} /> دعوة
+      </button>
+    </div>
+  </div>
 
-{#if error}<div class="u-alert err">{error}</div>{/if}
-{#if successMsg}<div class="u-alert ok">{successMsg}</div>{/if}
+  {#if error}<div class="u-alert err">{error}</div>{/if}
+  {#if successMsg}<div class="u-alert ok">{successMsg}</div>{/if}
 
-<!-- Section A: Users Management -->
-<section class="u-card admin-section">
+  <div class="u-grid4 stats-row">
+    <div class="u-stat">
+      <span class="lbl">الإجمالي</span>
+      <span class="num">{stats.total}</span>
+    </div>
+    <div class="u-stat">
+      <span class="lbl">نشطين</span>
+      <span class="num">{stats.active}</span>
+    </div>
+    <div class="u-stat">
+      <span class="lbl">موقوفين</span>
+      <span class="num">{stats.inactive}</span>
+    </div>
+    <div class="u-stat">
+      <span class="lbl">نسبة النشاط</span>
+      <span class="num">{stats.total ? Math.round((stats.active / stats.total) * 100) : 0}<small>٪</small></span>
+    </div>
+  </div>
+
+  <section class="u-card admin-section">
   <div class="u-card-h">
     <span>إدارة الأعضاء ({filteredUsers.length})</span>
     <button class="u-btn u-btn-ghost sm" onclick={loadData} disabled={loading} title="تحديث">
@@ -228,13 +253,11 @@
     </button>
   </div>
 
-  <!-- Search and filter -->
   <div class="toolbar-row">
-    <div class="search-wrap">
-      <span class="search-ic"><Icon icon={Search} size={16} /></span>
+    <div class="u-search">
+      <Icon icon={Search} size={16} />
       <input
         type="search"
-        class="u-input search-input"
         placeholder="بحث بالاسم أو البريد…"
         bind:value={searchQuery}
       />
@@ -436,46 +459,20 @@
   {/if}
 </section>
 
-<!-- Section C: System Health Card -->
-<section class="u-card health-section">
-  <div class="u-card-h">
-    <div class="health-title-row">
-      <Icon icon={Activity} size={18} />
-      <span>صحة النظام والأعضاء</span>
+  <section class="u-card">
+    <div class="u-card-h">
+      <h2>توزيع الأعضاء على اللجان</h2>
     </div>
-  </div>
-
-  <div class="health-grid">
-    <div class="u-stat">
-      <span class="lbl">إجمالي الأعضاء</span>
-      <span class="num">{stats.total}</span>
-    </div>
-    <div class="u-stat">
-      <span class="lbl">الحسابات النشطة</span>
-      <span class="num">{stats.active}</span>
-    </div>
-    <div class="u-stat">
-      <span class="lbl">الموقوفين</span>
-      <span class="num">{stats.inactive}</span>
-    </div>
-    <div class="u-stat">
-      <span class="lbl">نسبة النشاط</span>
-      <span class="num">{stats.total ? Math.round((stats.active / stats.total) * 100) : 0}%</span>
-    </div>
-  </div>
-
-  <div class="roles-breakdown-box">
-    <div class="breakdown-head">توزيع الأعضاء حسب اللجان والأدوار</div>
     <div class="breakdown-grid">
       {#each Object.entries(stats.roleCounts) as [r, cnt]}
         <div class="role-stat-item">
           <span class="role-stat-name">{roleLabels[r] || r}</span>
-          <span class="role-stat-num">{cnt}</span>
+          <span class="role-stat-num u-num">{cnt}</span>
         </div>
       {/each}
     </div>
-  </div>
-</section>
+  </section>
+</div>
 
 <!-- Modals -->
 {#if editingRolesUser}
@@ -514,21 +511,32 @@
     margin-bottom: var(--sp-2);
     flex-wrap: wrap;
   }
-  .search-wrap {
-    position: relative;
+  .u-search {
     flex: 1;
     min-width: 200px;
-  }
-  .search-ic {
-    position: absolute;
-    right: var(--sp-2);
-    top: 50%;
-    transform: translateY(-50%);
+    display: flex;
+    align-items: center;
+    gap: var(--sp-1);
+    height: 46px;
+    border-radius: var(--r-md);
+    background: var(--card);
+    border: 1px solid var(--line);
+    padding: 0 var(--sp-2);
     color: var(--ink3);
-    pointer-events: none;
   }
-  .search-input {
-    padding-inline-start: calc(var(--sp-5) + var(--sp-1));
+  .u-search input {
+    flex: 1;
+    border: 0;
+    outline: 0;
+    background: transparent;
+    color: var(--ink);
+    font-family: inherit;
+    font-size: 16px;
+    min-width: 0;
+  }
+
+  .stats-row {
+    margin-bottom: var(--sp-3);
   }
 
   /* Desktop Table */
@@ -669,37 +677,6 @@
     border-top: 1px solid var(--line);
   }
 
-  /* Health section */
-  .health-title-row {
-    display: inline-flex;
-    align-items: center;
-    gap: var(--sp-1);
-    color: var(--brand);
-  }
-  .health-grid {
-    display: grid;
-    grid-template-columns: repeat(2, 1fr);
-    gap: var(--sp-1);
-    margin-bottom: var(--sp-2);
-  }
-  @media (min-width: 600px) {
-    .health-grid {
-      grid-template-columns: repeat(4, 1fr);
-    }
-  }
-  .roles-breakdown-box {
-    background: var(--muted-bg);
-    border: 1px solid var(--line);
-    border-radius: var(--r-md);
-    padding: var(--sp-2);
-  }
-  .breakdown-head {
-    font: var(--fw-bold) var(--fs-xs) var(--font-sans);
-    color: var(--ink3);
-    text-transform: uppercase;
-    letter-spacing: var(--tracking-wide);
-    margin-bottom: var(--sp-1);
-  }
   .breakdown-grid {
     display: grid;
     grid-template-columns: repeat(2, 1fr);
@@ -707,24 +684,26 @@
   }
   @media (min-width: 600px) {
     .breakdown-grid {
-      grid-template-columns: repeat(4, 1fr);
+      grid-template-columns: repeat(3, 1fr);
     }
   }
   .role-stat-item {
     display: flex;
     justify-content: space-between;
     align-items: center;
-    background: var(--card);
-    padding: var(--sp-1) var(--sp-2);
+    background: var(--muted-bg);
+    padding: 8px var(--sp-2);
     border-radius: var(--r-sm);
     font-size: var(--fs-xs);
   }
   .role-stat-name {
     color: var(--ink2);
+    font-weight: var(--fw-medium);
   }
   .role-stat-num {
     font: var(--fw-bold) var(--fs-sm) var(--font-num);
     color: var(--brand);
+    font-variant-numeric: tabular-nums;
   }
   .skel-row {
     height: 60px;

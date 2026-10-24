@@ -1,7 +1,6 @@
 <script lang="ts">
   import { onMount } from 'svelte';
   import { BarChart3, CalendarCheck2, CalendarDays, Download, Percent, Printer, Trophy, UserCheck, Users } from 'lucide-svelte';
-  import PageHead from '../components/PageHead.svelte';
   import Icon from '../components/Icon.svelte';
   import EmptyIllustrations from '../components/EmptyIllustrations.svelte';
   import { supabase } from '../supabase';
@@ -278,8 +277,13 @@
 </script>
 
 {#if canView}
-  <div class="reports-page">
-    <PageHead icon={BarChart3} title="التقارير والإحصائيات" subtitle="مؤشرات الأداء والحضور والاستضافة" />
+  <div class="u-page reports-page">
+    <div class="u-top">
+      <div>
+        <div class="u-sub">مؤشرات الحضور والاستضافة</div>
+        <h1>التقارير والإحصائيات</h1>
+      </div>
+    </div>
 
     <div class="u-seg block period-selector" aria-label="الفترة الزمنية">
       {#each periodOptions as option (option.key)}

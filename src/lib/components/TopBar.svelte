@@ -1,25 +1,19 @@
 <script lang="ts">
-  import { onMount } from 'svelte';
   import { profile, route } from '../stores';
   import HexLogo from './HexLogo.svelte';
   import Avatar from './Avatar.svelte';
 
-  onMount(() => {
-    const onScroll = () => {
-      document.body.classList.toggle('scrolled', window.scrollY > 0);
-    };
-    window.addEventListener('scroll', onScroll, { passive: true });
-    return () => window.removeEventListener('scroll', onScroll);
-  });
+  const firstName = $derived(($profile?.full_name || 'عضو').split(' ')[0]);
 </script>
 
-<header class="u-topbar">
-  <button class="u-brand-chip-btn" onclick={() => route.set('home')} aria-label="الرئيسية">
-    <div class="u-brand-chip">
-      <HexLogo size={24} />
-      <span>تواق</span>
-    </div>
+<header class="u-header">
+  <button class="u-brand" onclick={() => route.set('home')} aria-label="الرئيسية">
+    <HexLogo size={24} />
   </button>
+  <div class="u-hinfo">
+    <div class="u-hname">مجموعة تواق</div>
+    <div class="u-hsub">أهلاً، {firstName}</div>
+  </div>
   <button class="user-btn" onclick={() => route.set('account')} aria-label="فتح حسابي">
     <Avatar
       url={$profile?.avatar_url}
@@ -31,33 +25,19 @@
 </header>
 
 <style>
-  :global(.u-topbar) {
-    min-height: 56px;
-  }
-  .u-brand-chip-btn {
+  :global(.u-header .u-brand) {
     background: transparent;
-    border: none;
+    border: 0;
     padding: 0;
     cursor: pointer;
-    font: inherit;
-    text-align: inherit;
-  }
-  .u-brand-chip-btn:focus-visible {
-    outline: 2px solid var(--brand-ink);
-    outline-offset: 2px;
-    border-radius: var(--r-pill);
   }
   .user-btn {
+    background: transparent;
+    border: 0;
+    padding: 0;
+    cursor: pointer;
     display: flex;
     align-items: center;
-    background: transparent;
-    border: none;
-    cursor: pointer;
-    min-height: var(--touch);
-  }
-  .user-btn:focus-visible {
-    outline: 2px solid var(--brand-ink);
-    outline-offset: 2px;
-    border-radius: var(--r-pill);
+    flex-shrink: 0;
   }
 </style>

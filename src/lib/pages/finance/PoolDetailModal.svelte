@@ -12,6 +12,7 @@
   import { supabase } from '../../supabase';
   import { session, canManageFinance } from '../../stores';
   import { fmtCurrency, fmtDate } from '../../utils';
+  import { confirmDialog, toastErr, toastOk } from '../../toast';
   import Icon from '../../components/Icon.svelte';
   import Avatar from '../../components/Avatar.svelte';
   import CommentThread from '../../components/CommentThread.svelte';
@@ -154,7 +155,13 @@
 
   async function updatePoolStatus(newStatus: 'open' | 'closed' | 'settled') {
     const label = poolStatusLabels[newStatus]?.label || newStatus;
-    if (!confirm(`تغيير حالة القطة إلى "${label}"؟`)) return;
+    const ok = await confirmDialog({
+      title: 'تحديث حالة القطة',
+      message: `تغيير الحالة إلى "${label}"؟`,
+      confirmLabel: 'تغيير',
+      danger: newStatus === 'closed' || newStatus === 'settled'
+    });
+    if (!ok) return;
 
     try {
       const { error: err } = await supabase
@@ -163,9 +170,11 @@
         .eq('id', pool.id);
       if (err) throw err;
       pool.status = newStatus;
+      toastOk(`تم تغيير الحالة إلى "${label}"`);
       onupdated();
     } catch (e: any) {
       error = e.message || 'تعذّر تحديث حالة القطة';
+      toastErr(error);
     }
   }
 </script>

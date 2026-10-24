@@ -1,22 +1,16 @@
 <script lang="ts">
   import { onMount } from 'svelte';
   import {
-    Check,
     ChevronDown,
     ChevronUp,
-    Filter,
-    Lightbulb,
-    MessageSquare,
     Plus,
-    RefreshCw,
     Shield,
-    Trash2,
-    X
+    Trash2
   } from 'lucide-svelte';
   import { supabase } from '../supabase';
   import { session, roles, isAdmin } from '../stores';
-  import { fmtDate, timeAgo } from '../utils';
-  import PageHead from '../components/PageHead.svelte';
+  import { timeAgo } from '../utils';
+  import { confirmDialog, toastErr, toastOk } from '../toast';
   import Icon from '../components/Icon.svelte';
   import Avatar from '../components/Avatar.svelte';
   import EmptyIllustrations from '../components/EmptyIllustrations.svelte';
@@ -195,23 +189,30 @@
       decisionNoteVal = '';
       await loadData();
     } catch (e: any) {
-      alert(e.message || 'تعذّر تحديث حالة الاقتراح');
+      toastErr(e.message || 'تعذّر تحديث حالة الاقتراح');
     } finally {
       savingStatus = false;
     }
   }
 
   async function deleteSuggestion(id: string) {
-    if (!confirm('هل أنت متأكد من حذف هذا الاقتراح؟')) return;
+    const ok = await confirmDialog({
+      title: 'حذف الاقتراح',
+      message: 'لن يمكن استرجاع هذا الاقتراح بعد الحذف.',
+      confirmLabel: 'حذف',
+      danger: true
+    });
+    if (!ok) return;
     try {
       const { error: err } = await supabase
         .from('suggestions')
         .update({ deleted_at: new Date().toISOString() })
         .eq('id', id);
       if (err) throw err;
+      toastOk('تم حذف الاقتراح');
       await loadData();
     } catch (e: any) {
-      alert(e.message || 'تعذّر حذف الاقتراح');
+      toastErr(e.message || 'تعذّر حذف الاقتراح');
     }
   }
 
@@ -229,28 +230,26 @@
   });
 </script>
 
-<PageHead
-  icon={Lightbulb}
-  title="اقتراحاتنا"
-  subtitle="شارك أفكارك للطلعات والفعاليات وصوّت على اقتراحات الأعضاء"
->
-  {#snippet action()}
-    <button class="u-btn u-btn-primary sm" onclick={() => (showCreateModal = true)}>
-      <Icon icon={Plus} size={15} />
-      <span>اقتراح جديد</span>
-    </button>
-  {/snippet}
-</PageHead>
+<div class="u-page">
+  <div class="u-top">
+    <div>
+      <div class="u-sub">{suggestions.length} اقتراح</div>
+      <h1>اقتراحاتنا</h1>
+    </div>
+    <div class="u-actions">
+      <button class="u-btn u-btn-primary sm" onclick={() => (showCreateModal = true)}>
+        <Icon icon={Plus} size={15} /> اقتراح
+      </button>
+    </div>
+  </div>
 
-<!-- Filter Chips -->
-<div class="filters">
   <div class="u-chips">
     <button
       class="u-chip"
       class:on={filterType === 'all'}
       onclick={() => (filterType = 'all')}
     >
-      الكل ({suggestions.length})
+      الكل <span class="chip-count">{suggestions.length}</span>
     </button>
     {#each Object.entries(typeConfig) as [k, v] (k)}
       <button
@@ -258,28 +257,27 @@
         class:on={filterType === k}
         onclick={() => (filterType = k)}
       >
-        {v.label} {typeCounts[k] ? `(${typeCounts[k]})` : ''}
+        {v.label} <span class="chip-count">{typeCounts[k] || 0}</span>
       </button>
     {/each}
   </div>
-</div>
 
-{#if loading}
-  <div class="suggestions-list">
-    <div class="u-skel sug-skel"></div>
-    <div class="u-skel sug-skel"></div>
-    <div class="u-skel sug-skel"></div>
-  </div>
-{:else if error}
-  <div class="u-alert err">{error}</div>
-{:else if filteredSuggestions.length === 0}
-  <div class="u-empty">
-    <EmptyIllustrations kind="generic" />
-    <h3>لا توجد اقتراحات بعد</h3>
-    <p>شارك فكرتك الأولى واجعل الأعضاء يصوتون عليها!</p>
-  </div>
-{:else}
-  <div class="suggestions-list">
+  {#if loading}
+    <div class="suggestions-list">
+      <div class="u-skel sug-skel"></div>
+      <div class="u-skel sug-skel"></div>
+      <div class="u-skel sug-skel"></div>
+    </div>
+  {:else if error}
+    <div class="u-alert err">{error}</div>
+  {:else if filteredSuggestions.length === 0}
+    <div class="u-empty">
+      <EmptyIllustrations kind="generic" />
+      <h3>لا توجد اقتراحات بعد</h3>
+      <p>شارك فكرتك الأولى واجعل الأعضاء يصوتون عليها!</p>
+    </div>
+  {:else}
+    <div class="suggestions-list">
     {#each filteredSuggestions as s (s.id)}
       {@const typeCfg = typeConfig[s.type] || { label: s.type, pill: '' }}
       {@const statCfg = statusConfig[s.status] || { label: s.status, pill: '' }}
@@ -411,8 +409,9 @@
         </div>
       </article>
     {/each}
-  </div>
-{/if}
+    </div>
+  {/if}
+</div>
 
 {#if showCreateModal}
   <SuggestionFormModal
@@ -425,9 +424,25 @@
 {/if}
 
 <style>
-  .filters {
-    margin-bottom: var(--sp-3);
+  .chip-count {
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
+    min-width: 20px;
+    padding: 0 6px;
+    height: 18px;
+    background: var(--muted-bg);
+    color: var(--ink2);
+    border-radius: var(--r-pill);
+    font: var(--fw-bold) 10.5px var(--font-sans);
+    font-variant-numeric: tabular-nums;
+    margin-inline-start: 4px;
   }
+  :global(.u-chip.on) .chip-count {
+    background: color-mix(in oklab, var(--bg) 25%, transparent);
+    color: var(--bg);
+  }
+
   .suggestions-list {
     display: flex;
     flex-direction: column;

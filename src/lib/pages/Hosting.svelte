@@ -1,10 +1,9 @@
 <script lang="ts">
   import { onMount } from 'svelte';
-  import { ArrowRightLeft, Check, Pencil, Plus, RefreshCw, Trash2, Users } from 'lucide-svelte';
+  import { ArrowRightLeft, Check, Pencil, Plus, RefreshCw, Trash2 } from 'lucide-svelte';
   import { supabase } from '../supabase';
   import { roles, session } from '../stores';
   import { fmtDate } from '../utils';
-  import PageHead from '../components/PageHead.svelte';
   import HostingForm from './HostingForm.svelte';
   import HostingModal from '../components/HostingModal.svelte';
   import { assignmentSelect, swapSelect, canManageHosting, hostingError, type Assignment, type Swap } from './hosting';
@@ -148,20 +147,23 @@
   function saved() { form = null; success = 'تم الحفظ بنجاح.'; void load(); }
 </script>
 
-<PageHead icon={Users} title="جدول المعازيب" subtitle="تكليفات الاستضافة والتأكيد وطلبات التبديل" />
-
-<div class="toolbar">
-  <span class="u-pill brand">طلعات الأربعاء القادمة</span>
-  <button class="u-btn u-btn-ghost sm" onclick={() => load()} disabled={refreshing || !!busy}>
-    <Icon icon={RefreshCw} size={15} />
-    {refreshing ? 'جارٍ التحديث…' : 'تحديث'}
-  </button>
-  {#if canManage}
-    <button class="u-btn u-btn-primary sm add-btn" disabled={!!busy} onclick={() => form = { mode: 'assignment', assignment: null }}>
-      <Icon icon={Plus} size={15} /> ربط معازيب بطلعة
-    </button>
-  {/if}
-</div>
+<div class="u-page">
+  <div class="u-top">
+    <div>
+      <div class="u-sub">تكليفات طلعات الأربعاء</div>
+      <h1>جدول المعازيب</h1>
+    </div>
+    <div class="u-actions">
+      <button class="u-icon-btn" onclick={() => load()} disabled={refreshing || !!busy} aria-label="تحديث">
+        <Icon icon={RefreshCw} size={16} />
+      </button>
+      {#if canManage}
+        <button class="u-btn u-btn-primary sm" disabled={!!busy} onclick={() => form = { mode: 'assignment', assignment: null }}>
+          <Icon icon={Plus} size={15} /> ربط
+        </button>
+      {/if}
+    </div>
+  </div>
 
 {#if error}<div class="u-alert err" role="alert">{error}</div>{/if}
 {#if liveError}<div class="u-alert warn" role="alert">{liveError}</div>{/if}
@@ -303,6 +305,8 @@
   {/if}
 {/if}
 
+</div>
+
 {#if form}
   <HostingForm mode={form.mode} assignment={form.assignment} onclose={() => form = null} onsaved={saved} />
 {/if}
@@ -323,15 +327,6 @@
 {/if}
 
 <style>
-  .toolbar {
-    display: flex;
-    gap: var(--sp-1);
-    align-items: center;
-    flex-wrap: wrap;
-    margin-bottom: var(--sp-2);
-  }
-  .add-btn { margin-inline-start: auto; }
-
   .host-card {
     position: relative;
   }
