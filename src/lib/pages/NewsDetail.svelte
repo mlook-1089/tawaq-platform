@@ -5,6 +5,7 @@
   import { fmtDate, hijriDate } from '../utils';
   import Icon from '../components/Icon.svelte';
   import Avatar from '../components/Avatar.svelte';
+  import CommentThread from '../components/CommentThread.svelte';
 
   let {
     item,
@@ -83,6 +84,8 @@
       <div class="news-full-body">
         {item.body}
       </div>
+
+      <CommentThread entity_type="news" entity_id={item.id} />
     </div>
 
     <div class="u-modal-footer">

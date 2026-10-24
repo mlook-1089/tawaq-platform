@@ -8,6 +8,7 @@
   import Icon from '../components/Icon.svelte';
   import EmptyIllustrations from '../components/EmptyIllustrations.svelte';
   import EventForm from './EventForm.svelte';
+  import EventDetailModal from './EventDetailModal.svelte';
 
   let events = $state<any[]>([]);
   let loading = $state(true);
@@ -15,6 +16,7 @@
   let filter = $state('all');
   let showForm = $state(false);
   let editingEvent = $state<any>(null);
+  let selectedEvent = $state<any>(null);
 
   const allowedTypes = $derived(myAllowedTypes($roles));
 
@@ -96,7 +98,13 @@
       <span class="hijri">· {hijriDate(day)}</span>
     </div>
     {#each dayEvents as e (e.id)}
-      <article class="tw-event">
+      <div
+        class="tw-event interactive"
+        onclick={() => (selectedEvent = e)}
+        onkeydown={(ev) => ev.key === 'Enter' && (selectedEvent = e)}
+        tabindex="0"
+        role="button"
+      >
         <time class="tw-event-date" datetime={e.start_datetime}>
           <span class="day-name">{fmtDate(e.start_datetime).split(' ')[0]}</span>
           <span class="day-number">{new Date(e.start_datetime).getDate()}</span>
@@ -114,18 +122,22 @@
           {#if e.description}<div class="desc">{e.description}</div>{/if}
         </div>
         {#if canCreateType($roles, e.type)}
-          <div class="actions">
+          <div class="actions" onclick={(ev) => ev.stopPropagation()} role="presentation">
             <button class="u-btn-icon" onclick={() => openEdit(e)} aria-label="تعديل"><Icon icon={Pencil} size={15} /></button>
             <button class="u-btn-icon danger-btn" onclick={() => deleteEvent(e)} aria-label="حذف"><Icon icon={Trash2} size={15} /></button>
           </div>
         {/if}
-      </article>
+      </div>
     {/each}
   {/each}
 {/if}
 
 {#if showForm}
   <EventForm event={editingEvent} onclose={() => showForm = false} onsaved={onSaved} />
+{/if}
+
+{#if selectedEvent}
+  <EventDetailModal event={selectedEvent} onclose={() => (selectedEvent = null)} />
 {/if}
 
 <style>
