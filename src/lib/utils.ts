@@ -83,3 +83,13 @@ export function myAllowedTypes(roles: string[]): string[] {
   if (roles.includes('super_admin')) return Object.keys(EVENT_TYPES);
   return Object.keys(EVENT_TYPES).filter(t => roles.includes(EVENT_TYPES[t].owner));
 }
+
+export function esc(str: string | null | undefined): string {
+  if (!str) return '';
+  return String(str)
+    .replace(/&/g, '&amp;')
+    .replace(/</g, '&lt;')
+    .replace(/>/g, '&gt;')
+    .replace(/"/g, '&quot;')
+    .replace(/'/g, '&#039;');
+}

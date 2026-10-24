@@ -24,8 +24,8 @@
 .u-btn.icon-only.sm { width: var(--btn-h-sm); }
 .u-btn-icon {
   display: inline-flex; align-items: center; justify-content: center;
-  width: calc(var(--sp-6) + var(--sp-05));
-  height: calc(var(--sp-6) + var(--sp-05));
+  min-width: 40px; min-height: 40px;
+  width: 40px; height: 40px;
   background: transparent;
   border: 1px solid var(--line);
   border-radius: var(--r-xs);
@@ -132,11 +132,25 @@
 
 /* ---- Pills / Badges / Chips ---- */
 .u-pill {
-  display: inline-flex; align-items: center; gap: 4px;
-  padding: 4px 9px; border-radius: var(--r-pill);
+  display: inline-flex; align-items: center; gap: 5px;
+  padding: 4px 10px; border-radius: var(--r-pill);
   font: var(--fw-bold) var(--fs-tiny)/1 var(--font-sans);
   letter-spacing: 0.02em; white-space: nowrap;
   background: var(--muted-bg); color: var(--ink2);
+}
+.u-pill::before {
+  content: "";
+  display: inline-block;
+  width: 6px;
+  height: 6px;
+  border-radius: var(--r-pill);
+  background: currentColor;
+  flex-shrink: 0;
+}
+.u-pill:has(svg)::before,
+.u-pill.no-dot::before,
+.u-pill:empty::before {
+  display: none;
 }
 .u-pill.ok    { background: var(--ok-soft);    color: var(--ok); }
 .u-pill.warn  { background: var(--warn-soft);  color: var(--warn); }
@@ -355,7 +369,8 @@
   font: var(--fw-bold) var(--fs-md) var(--font-sans);
 }
 .u-modal-close {
-  width: 36px; height: 36px; border-radius: var(--r-xs);
+  width: 40px; height: 40px; min-width: 40px; min-height: 40px;
+  border-radius: var(--r-xs);
   background: transparent; border: 1px solid transparent;
   color: var(--ink2);
   cursor: pointer;
@@ -780,37 +795,54 @@
 }
 
 /* =========================================================
-   DESIGN-SYSTEM COMPLIANCE PASS — appended, never modifying above
+   DESIGN-SYSTEM COMPLIANCE PASS — REFINED ARCHITECTURE
    ========================================================= */
 
-/* ---- Rule 5: Stat cards — tabular nums + shadow ---- */
+/* ---- Stat cards: tabular nums + shadow ---- */
+.u-stat { box-shadow: var(--shadow); }
 .u-stat .num {
   font-variant-numeric: tabular-nums;
   font-feature-settings: "tnum";
 }
-.u-stat { box-shadow: var(--shadow); }
 
-/* ---- Rule 6: Empty state — icon centred, properly muted ---- */
-.u-empty .ic {
+/* ---- Empty state: properly muted icon and hierarchy ---- */
+.u-empty .ic,
+.u-empty svg {
   font-size: 36px;
   opacity: 0.45;
   color: var(--ink3);
 }
-.u-empty svg { opacity: 0.45; color: var(--ink3); }
+.u-empty h3 { color: var(--ink2); margin: 0; }
+.u-empty p { color: var(--ink3); margin: 0; }
 
-/* ---- Rule 8: Progress bar — gradient fill ---- */
+/* ---- Progress bar: gradient fill ---- */
 .u-progress-bar .pb-fill {
   background: linear-gradient(to left, var(--brand), var(--brand-3));
 }
 
-/* ---- Rule 9: Filter chips row — edge-fade mask ---- */
+/* ---- Filter chips row: edge-fade mask & hidden scrollbar ---- */
 .u-chips {
-  -webkit-mask-image: linear-gradient(to left, transparent 0, black 24px, black calc(100% - 24px), transparent 100%);
-          mask-image: linear-gradient(to left, transparent 0, black 24px, black calc(100% - 24px), transparent 100%);
-  padding-inline: var(--sp-3);
+  -webkit-mask-image: linear-gradient(
+    to left,
+    transparent 0,
+    black 24px,
+    black calc(100% - 24px),
+    transparent 100%
+  );
+  mask-image: linear-gradient(
+    to left,
+    transparent 0,
+    black 24px,
+    black calc(100% - 24px),
+    transparent 100%
+  );
+  padding-inline: var(--sp-2);
+  scrollbar-width: none;
+  -webkit-overflow-scrolling: touch;
 }
+.u-chips::-webkit-scrollbar { display: none; }
 
-/* ---- Rule 13: Dark mode — nav contrast ---- */
+/* ---- Dark mode navigation contrast ---- */
 html.dark .u-nav-item {
   color: color-mix(in oklab, var(--on-brand) 55%, transparent);
 }
@@ -818,25 +850,67 @@ html.dark .u-nav-item.on {
   color: var(--on-brand);
 }
 
-/* ---- Rule 2: Bottom nav — active text weight + inactive mute ---- */
-.u-nav-item {
-  color: color-mix(in oklab, var(--on-brand) 60%, transparent);
-}
-.u-nav-item.on {
-  color: var(--on-brand);
-  font-weight: var(--fw-bold);
+/* ---- Cards: interactive tactile feedback ---- */
+.u-card.interactive:active {
+  transform: scale(0.97);
+  box-shadow: var(--shadow);
 }
 
-/* ---- Rule 2: Bottom nav — gold active indicator via ::after ---- */
-.u-nav-item.on::after {
-  content: "";
-  display: block;
-  width: 20px;
-  height: 3px;
-  background: var(--gold);
-  border-radius: var(--r-pill);
-  position: absolute;
-  bottom: 0;
-  left: 50%;
-  transform: translateX(-50%);
+/* ---- Buttons: tactile touch feedback ---- */
+.u-btn:active:not(:disabled) {
+  transform: scale(0.97);
+  filter: brightness(0.94);
+}
+
+/* ---- Arabic typography: safe wrapping without word splitting ---- */
+.member-name,
+.u-list-title,
+.u-page-head h1,
+.tw-event .title,
+.news-promo-title {
+  overflow-wrap: normal;
+  word-break: keep-all;
+  line-break: anywhere;
+}
+
+/* ---- Modal & Sheet: mobile bottom sheet handle & safe area ---- */
+@media (max-width: 767px) {
+  .u-modal {
+    align-items: flex-end;
+    padding: 0;
+  }
+  .u-modal-box {
+    border-radius: var(--r-3xl) var(--r-3xl) 0 0;
+    max-width: 100%;
+    max-height: 92dvh;
+    padding-bottom: calc(var(--sp-3) + env(safe-area-inset-bottom, 0));
+  }
+  .u-sheet-handle {
+    display: block;
+    width: 44px;
+    height: 4px;
+    background: var(--line2);
+    border-radius: var(--r-pill);
+    margin: var(--sp-1) auto var(--sp-2);
+  }
+  .u-input,
+  .u-select,
+  .u-textarea,
+  input,
+  select,
+  textarea {
+    font-size: 16px !important; /* iOS zoom prevention */
+  }
+}
+
+/* ---- Focus visibility standard ---- */
+button:focus-visible,
+input:focus-visible,
+select:focus-visible,
+textarea:focus-visible,
+.u-btn:focus-visible,
+.u-nav-item:focus-visible,
+.u-chip:focus-visible {
+  outline: 2px solid var(--brand-ink);
+  outline-offset: 2px;
 }

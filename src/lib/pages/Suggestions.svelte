@@ -219,6 +219,14 @@
     if (filterType === 'all') return suggestions;
     return suggestions.filter(s => s.type === filterType);
   });
+
+  const typeCounts = $derived.by(() => {
+    const c: Record<string, number> = {};
+    for (const s of suggestions) {
+      c[s.type] = (c[s.type] || 0) + 1;
+    }
+    return c;
+  });
 </script>
 
 <PageHead
@@ -250,7 +258,7 @@
         class:on={filterType === k}
         onclick={() => (filterType = k)}
       >
-        {v.label}
+        {v.label} {typeCounts[k] ? `(${typeCounts[k]})` : ''}
       </button>
     {/each}
   </div>

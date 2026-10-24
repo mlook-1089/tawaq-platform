@@ -99,6 +99,14 @@
     if (selectedCategory === 'all') return newsList;
     return newsList.filter(n => n.category === selectedCategory);
   });
+
+  const categoryCounts = $derived.by(() => {
+    const c: Record<string, number> = {};
+    for (const n of newsList) {
+      c[n.category] = (c[n.category] || 0) + 1;
+    }
+    return c;
+  });
 </script>
 
 <PageHead icon={Megaphone} title="الأخبار والإعلانات" subtitle="مستجدات وإعلانات مجموعة تواق">
@@ -131,7 +139,7 @@
         class:on={selectedCategory === k}
         onclick={() => (selectedCategory = k)}
       >
-        {v.label}
+        {v.label} {categoryCounts[k] ? `(${categoryCounts[k]})` : ''}
       </button>
     {/each}
   </div>

@@ -13,7 +13,13 @@ h1, h2 { letter-spacing: -0.015em; }
 
 .num,
 time,
-[data-numeric] {
+[data-numeric],
+.role-stat-num,
+.score-badge,
+.stat-num,
+.countdown,
+.tw-event-date .day-number,
+.u-badge {
   font-family: var(--font-num);
   font-variant-numeric: tabular-nums;
   font-feature-settings: "tnum";

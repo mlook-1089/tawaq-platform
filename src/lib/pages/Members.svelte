@@ -64,6 +64,16 @@
     return Array.from(set);
   });
 
+  const roleCounts = $derived.by(() => {
+    const counts: Record<string, number> = {};
+    for (const m of members) {
+      for (const r of m.roles) {
+        counts[r] = (counts[r] || 0) + 1;
+      }
+    }
+    return counts;
+  });
+
   function getPrimaryRole(roles: string[]): string {
     if (roles.includes('super_admin')) return 'super_admin';
     const mod = roles.find(r => r.startsWith('mod_'));
@@ -201,7 +211,7 @@
         class:on={selectedRole === role}
         onclick={() => (selectedRole = role)}
       >
-        {roleLabels[role] || role}
+        {roleLabels[role] || role} ({roleCounts[role] || 0})
       </button>
     {/each}
   </div>

@@ -38,6 +38,14 @@
     filter === 'all' ? events : events.filter(e => e.type === filter)
   );
 
+  const eventCounts = $derived.by(() => {
+    const c: Record<string, number> = {};
+    for (const e of events) {
+      c[e.type] = (c[e.type] || 0) + 1;
+    }
+    return c;
+  });
+
   const groupedByDay = $derived.by(() => {
     const g: Record<string, any[]> = {};
     for (const e of filtered) {
@@ -70,9 +78,13 @@
 
 <div class="filters">
   <div class="u-chips">
-    <button class="u-chip" class:on={filter === 'all'} onclick={() => filter = 'all'}>الكل</button>
+    <button class="u-chip" class:on={filter === 'all'} onclick={() => filter = 'all'}>
+      الكل ({events.length})
+    </button>
     {#each Object.entries(EVENT_TYPES) as [k, v] (k)}
-      <button class="u-chip" class:on={filter === k} onclick={() => filter = k}>{v.label}</button>
+      <button class="u-chip" class:on={filter === k} onclick={() => filter = k}>
+        {v.label} {eventCounts[k] ? `(${eventCounts[k]})` : ''}
+      </button>
     {/each}
   </div>
 </div>
