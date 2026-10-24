@@ -10,6 +10,9 @@ export const isAdmin = derived(roles, ($r) => $r.includes('super_admin'));
 export const canWriteNews = derived(roles, ($r) =>
   $r.includes('super_admin') || $r.includes('mod_media')
 );
+export const canManageFinance = derived(roles, ($r) =>
+  $r.includes('super_admin') || $r.includes('mod_hospitality')
+);
 export const canWriteEvents = derived(roles, ($r) =>
   $r.some(r => ['super_admin','mod_cultural','mod_sports','mod_competitions','mod_trips','mod_hospitality'].includes(r))
 );

@@ -28,6 +28,11 @@ export function fmtDT(iso: string): string {
   return iso ? fmtDate(iso) + ' · ' + fmtTime(iso) : '';
 }
 
+export function fmtCurrency(amount: number | string | null | undefined): string {
+  const n = Number(amount) || 0;
+  return `ر.س ${n.toFixed(2)}`;
+}
+
 export function fmtInput(iso: string | null | undefined, dateOnly = false): string {
   if (!iso) return '';
   const d = new Date(iso);
