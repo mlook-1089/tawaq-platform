@@ -8,6 +8,7 @@
   import Admin from './pages/Admin.svelte';
   import News from './pages/News.svelte';
   import Finance from './pages/Finance.svelte';
+  import Suggestions from './pages/Suggestions.svelte';
   import Reports from './pages/Reports.svelte';
   import Account from './pages/Account.svelte';
   import TopBar from './components/TopBar.svelte';
@@ -34,6 +35,8 @@
         <News />
       {:else if $route === 'finance'}
         <Finance />
+      {:else if $route === 'suggestions'}
+        <Suggestions />
       {:else if $route === 'reports'}
         <Reports />
       {:else if $route === 'account'}

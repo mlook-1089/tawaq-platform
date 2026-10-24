@@ -7,6 +7,7 @@
     Clock,
     Contact,
     House,
+    Lightbulb,
     MapPin,
     Megaphone,
     UserCheck,
@@ -129,6 +130,15 @@
   <div class="news-promo-text">
     <div class="news-promo-title">الأخبار والإعلانات</div>
     <div class="news-promo-sub">مستجدات المجموعة، التهاني، والقرارات الرسمية</div>
+  </div>
+  <Icon icon={ChevronLeft} size={17} />
+</button>
+
+<button class="u-card interactive news-promo-card" onclick={() => route.set('suggestions')}>
+  <div class="news-promo-icon sugg-icon"><Icon icon={Lightbulb} size={20} /></div>
+  <div class="news-promo-text">
+    <div class="news-promo-title">اقتراحاتنا</div>
+    <div class="news-promo-sub">شارك أفكارك وصوّت على اقتراحات الأعضاء ومناقشتها</div>
   </div>
   <Icon icon={ChevronLeft} size={17} />
 </button>
@@ -257,6 +267,10 @@
     color: var(--brand-ink);
     border-radius: var(--r-xs);
     flex-shrink: 0;
+  }
+  .sugg-icon {
+    background: var(--warn-soft);
+    color: var(--warn);
   }
   .news-promo-text {
     flex: 1;
